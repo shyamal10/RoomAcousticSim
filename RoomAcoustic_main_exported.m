@@ -43,8 +43,12 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
         SelectionTab                    matlab.ui.container.Tab
         Image2                          matlab.ui.control.Image
         ChooseEnviornmentPanel          matlab.ui.container.Panel
+        ErrorLabel                      matlab.ui.control.Label
+        SelectModeListBox               matlab.ui.control.ListBox
+        SelectModeListBoxLabel          matlab.ui.control.Label
         envSelect                       matlab.ui.control.DropDown
         EnviornementSelectDropDownLabel  matlab.ui.control.Label
+        UIAxes4                         matlab.ui.control.UIAxes
         SimulationTab                   matlab.ui.container.Tab
         SimulatePanel                   matlab.ui.container.Panel
         ResetButton                     matlab.ui.control.Button
@@ -59,50 +63,101 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
 
     
     properties (Access = private)
+        dropdown = [] % Drop down options 
     end
     
     methods (Access = private)
         
-        function returnOptions(app,Uwidth,Udepth,Uheight,U_sr_distance,UsHeight,UrHeight)
-            % Return array of rooms based on configuration 
-
-            options = {}; %dropdown options array 
-            
+        function returnOptions(app,Uwidth,Udepth,Uheight,U_sr_distance)
+             % Return array of rooms based on configuration 
+            options = []; %dropdown options array
             %database
-
-            %1st Baptist Nashivlle
+    
+            %1st Baptist Nashivlles
             nashville = struct();
             nashville.width = 15; %inmeters
             nashville.depth = 24;
-            nashville.height = 15; 
+            nashville.height = 15;
             nashville.srdist = [18 26 30]; %close, far wide, balcony
-
+    
             %elveden-hall-suffolk-england
             elveden_hall = struct();
-            elveden_hall.height = 10;
             elveden_hall.width = 20;
             elveden_hall.depth = 30;
-            elveden_hall.srdist = [6 2 2 4];
-            
-            
+            elveden_hall.height = 10;
+            elveden_hall.srdist = [6 2 2 4]; %1a 3a 4a 18a
+    
+            %Hamilton-Mausoleum
+            hamilton = struct();
+            hamilton.width = 30;
+            hamilton.depth = 25;
+            hamilton.height = 37;
+            hamilton.srdist = [4.7];
+    
+            %heslington-church-vaa-group-2
+            heslington = struct();
+            heslington.width = 12;
+            heslington.depth = 12;
+            heslington.height = 12;
+            heslington.srdist = [4.5 5 4.1 4.5 11 12.1];
+    
+            %maes-howe
+            maes_howe = struct();
+            maes_howe.width = 12;
+            maes_howe.depth = 12;
+            maes_howe.height = 12;
+            maes_howe.srdist = [2 2];
+    
             %Main enviornment struct to hold nested structs
             env = struct();
             env.("nashville") = nashville;
             env.("elveden_hall") = elveden_hall;
-
+            env.("hamilton") = hamilton;
+            env.("heslington") = heslington;
+            env.("maes_howe") = maes_howe;
+    
             %Suggestion algorithm
             fn = fieldnames(env); %returns keys in database
-           
+            tol = 3;
+            %dropdown = [];
             for k=1:numel(fn)
-                if env.(fn{k}).width 
-                    % do stuff
-                    if 
-
+                room = string(fn{k});
+                isWidthWithinRange = (Uwidth >= env.(room).width - tol) && ...
+                    (Uwidth <= env.(room).width + tol);
+                isDepthWithinRange = (Udepth >= env.(room).depth - tol) && ...
+                    (Udepth <= env.(room).depth + tol);
+                isHeightWithinRange = (Uheight >= env.(room).height - tol) && ...
+                    (Uheight <= env.(room).height + tol);
+    
+                if (isWidthWithinRange && isDepthWithinRange && isHeightWithinRange)
+                    % check source/reciever distances
+                    a = 1;
+                    arr = env.(room).srdist;
+                    for a=1:numel(arr)
+                        val = arr(a);
+                        isSRwithinRange = (U_sr_distance >= (val - 1)) && ...
+                            (U_sr_distance <= (val + 1));
+                        if isSRwithinRange
+                            options = [options string(room)]; %with IR info
+                            %app.dropdown = [options string(room)]; %just room name
+                        end
+                    end
+                    %         if isfield(env.(room),SRHeight)
+                    %
+                    %
+                    %         end
                 end
             end
+    
+            %Format array to send to dropdown list
+            % Delete the first element (first entry is always empty)
+            options = options(1:end);
+            app.dropdown = string(options);
+            app.envSelect.Items = app.dropdown;
 
-            return options
-            
+            if isempty(options)
+                app.ErrorLabel.Visible= 'on';
+            end
         end
     end
     
@@ -120,6 +175,8 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             
             sourceCoord = [app.sourceXSpinner.Value, app.sourceYSpinner.Value, app.sourceZSpinner.Value];
             receiverCoord = [app.recXSpinner.Value,app.recYSpinner.Value,app.recZSpinner.Value];
+            
+            dist = norm(receiverCoord - sourceCoord);
 
             %Creating room Dimensions array
             roomDimensions = [Width Depth Height];
@@ -143,6 +200,10 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             %plot3(app.UIAxes,Width,Height,Depth,'.')
 
             %Update options list based on user input
+            returnOptions(app,Width,Depth,Height,dist);
+%             if isempty(app.dropdown2)
+%                 app.ErrorLabel.HandleVisibility('on');
+%             end
             
         end
     end
@@ -376,27 +437,56 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             app.SelectionTab = uitab(app.TabGroup);
             app.SelectionTab.Title = 'Selection';
 
+            % Create UIAxes4
+            app.UIAxes4 = uiaxes(app.SelectionTab);
+            title(app.UIAxes4, 'Loaded IR Response')
+            xlabel(app.UIAxes4, 'Time')
+            ylabel(app.UIAxes4, 'Y')
+            zlabel(app.UIAxes4, 'Z')
+            app.UIAxes4.Position = [319 41 300 229];
+
             % Create ChooseEnviornmentPanel
             app.ChooseEnviornmentPanel = uipanel(app.SelectionTab);
             app.ChooseEnviornmentPanel.Title = 'Choose Enviornment';
-            app.ChooseEnviornmentPanel.Position = [2 355 637 101];
+            app.ChooseEnviornmentPanel.Position = [2 302 637 154];
 
             % Create EnviornementSelectDropDownLabel
             app.EnviornementSelectDropDownLabel = uilabel(app.ChooseEnviornmentPanel);
             app.EnviornementSelectDropDownLabel.HorizontalAlignment = 'right';
             app.EnviornementSelectDropDownLabel.FontWeight = 'bold';
-            app.EnviornementSelectDropDownLabel.Position = [156 28 124 22];
+            app.EnviornementSelectDropDownLabel.Position = [293 81 124 22];
             app.EnviornementSelectDropDownLabel.Text = 'Enviornement Select';
 
             % Create envSelect
             app.envSelect = uidropdown(app.ChooseEnviornmentPanel);
-            app.envSelect.Items = {'1st Baptist Church', 'Alcuin College, University of York', 'Option 3', 'Option 4'};
-            app.envSelect.Position = [295 28 161 22];
-            app.envSelect.Value = '1st Baptist Church';
+            app.envSelect.Items = {};
+            app.envSelect.Position = [432 81 161 22];
+            app.envSelect.Value = {};
+
+            % Create SelectModeListBoxLabel
+            app.SelectModeListBoxLabel = uilabel(app.ChooseEnviornmentPanel);
+            app.SelectModeListBoxLabel.HorizontalAlignment = 'right';
+            app.SelectModeListBoxLabel.Position = [22 82 72 22];
+            app.SelectModeListBoxLabel.Text = 'Select Mode';
+
+            % Create SelectModeListBox
+            app.SelectModeListBox = uilistbox(app.ChooseEnviornmentPanel);
+            app.SelectModeListBox.Items = {'Suggestion Mode', 'All Options'};
+            app.SelectModeListBox.Position = [109 63 137 43];
+            app.SelectModeListBox.Value = 'Suggestion Mode';
+
+            % Create ErrorLabel
+            app.ErrorLabel = uilabel(app.ChooseEnviornmentPanel);
+            app.ErrorLabel.FontWeight = 'bold';
+            app.ErrorLabel.FontAngle = 'italic';
+            app.ErrorLabel.FontColor = [0.902 0.3765 0.3765];
+            app.ErrorLabel.Visible = 'off';
+            app.ErrorLabel.Position = [70 27 184 22];
+            app.ErrorLabel.Text = 'No IR match user configuration';
 
             % Create Image2
             app.Image2 = uiimage(app.SelectionTab);
-            app.Image2.Position = [140 19 362 311];
+            app.Image2.Position = [24 39 292 251];
 
             % Create SimulationTab
             app.SimulationTab = uitab(app.TabGroup);
