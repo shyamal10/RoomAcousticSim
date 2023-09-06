@@ -64,6 +64,9 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
     
     properties (Access = private)
         dropdown = [] % Drop down options 
+        
+        all_options = ["1st Baptist Nashivlle","Elveden Hall Suffolk England"...
+            "Hamilton-Mausoleum","Heslington-church","Maes-howe"]; % Description
     end
     
     methods (Access = private)
@@ -115,7 +118,7 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             env.("hamilton") = hamilton;
             env.("heslington") = heslington;
             env.("maes_howe") = maes_howe;
-    
+
             %Suggestion algorithm
             fn = fieldnames(env); %returns keys in database
             tol = 3;
@@ -205,6 +208,31 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
 %                 app.ErrorLabel.HandleVisibility('on');
 %             end
             
+        end
+
+        % Value changed function: SelectModeListBox
+        function SelectModeListBoxValueChanged(app, event)
+            value = app.SelectModeListBox.Value;
+            
+
+            switch value
+                case "All Options"
+                    % update the selection dropdown
+                    app.envSelect.Items = app.all_options; 
+                case "Suggestion Mode"
+                    %returnOptions()
+                    app.envSelect.Items = app.dropdown;
+                
+            end
+        end
+
+        % Value changed function: envSelect
+        function envSelectValueChanged(app, event)
+            value = app.envSelect.Value;
+            switch value
+                case {"nashville", app.all_options(1)}
+                    app.Image2.ImageSource = "\\thoth.cecs.pdx.edu\Home02\shyamal\My Documents\MATLAB\assets\1st-baptist-nashville\images\first_baptist_church_of_nashville_northwest_corner_2.jpg";
+            end
         end
     end
 
@@ -460,6 +488,7 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             % Create envSelect
             app.envSelect = uidropdown(app.ChooseEnviornmentPanel);
             app.envSelect.Items = {};
+            app.envSelect.ValueChangedFcn = createCallbackFcn(app, @envSelectValueChanged, true);
             app.envSelect.Position = [432 81 161 22];
             app.envSelect.Value = {};
 
@@ -472,6 +501,7 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             % Create SelectModeListBox
             app.SelectModeListBox = uilistbox(app.ChooseEnviornmentPanel);
             app.SelectModeListBox.Items = {'Suggestion Mode', 'All Options'};
+            app.SelectModeListBox.ValueChangedFcn = createCallbackFcn(app, @SelectModeListBoxValueChanged, true);
             app.SelectModeListBox.Position = [109 63 137 43];
             app.SelectModeListBox.Value = 'Suggestion Mode';
 
