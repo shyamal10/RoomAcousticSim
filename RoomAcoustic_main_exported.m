@@ -5,6 +5,7 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
         UIFigure                        matlab.ui.Figure
         TabGroup                        matlab.ui.container.TabGroup
         HomeTab                         matlab.ui.container.Tab
+        Hyperlink                       matlab.ui.control.Hyperlink
         InstructionsPanel               matlab.ui.container.Panel
         SetdesiredsizeofenviornemntinConfigurepanelandclickLabel_3  matlab.ui.control.Label
         SetdesiredsizeofenviornemntinConfigurepanelandclickLabel_2  matlab.ui.control.Label
@@ -48,7 +49,7 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
         SelectModeListBoxLabel          matlab.ui.control.Label
         envSelect                       matlab.ui.control.DropDown
         EnviornementSelectDropDownLabel  matlab.ui.control.Label
-        UIAxes4                         matlab.ui.control.UIAxes
+        IRgraph                         matlab.ui.control.UIAxes
         SimulationTab                   matlab.ui.container.Tab
         SimulatePanel                   matlab.ui.container.Panel
         ResetButton                     matlab.ui.control.Button
@@ -67,6 +68,9 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
         
         all_options = ["1st Baptist Nashivlle","Elveden Hall Suffolk England"...
             "Hamilton-Mausoleum","Heslington-church","Maes-howe"]; % Description
+        IR = [] % Impulse Repsonse
+        audioFile = [] % Audio sample loaded
+        filePath = '' % Description
     end
     
     methods (Access = private)
@@ -162,6 +166,17 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
                 app.ErrorLabel.Visible= 'on';
             end
         end
+        
+        function [time,amplitude] = audioToArray(app,filename)
+            %Takes audio input and returns two arrays time and amplitude
+            %axis
+            [y,fs] = audioread(filename);
+            y = y(:,1);
+            dt = 1/fs;
+            time = 0:dt:(length(y)*dt)-dt;
+            amplitude = y;
+            %return {t,y};
+        end
     end
     
 
@@ -214,11 +229,15 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
         function SelectModeListBoxValueChanged(app, event)
             value = app.SelectModeListBox.Value;
             
-
             switch value
                 case "All Options"
                     % update the selection dropdown
                     app.envSelect.Items = app.all_options; 
+                    value = app.envSelect.Value;
+                switch value %edge case first option
+                    case {"nashville", app.all_options(1)}
+                        app.Image2.ImageSource = "\\thoth.cecs.pdx.edu\Home02\shyamal\My Documents\MATLAB\assets\1st-baptist-nashville\images\first_baptist_church_of_nashville_northwest_corner_2.jpg";
+                end
                 case "Suggestion Mode"
                     %returnOptions()
                     app.envSelect.Items = app.dropdown;
@@ -232,7 +251,28 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             switch value
                 case {"nashville", app.all_options(1)}
                     app.Image2.ImageSource = "\\thoth.cecs.pdx.edu\Home02\shyamal\My Documents\MATLAB\assets\1st-baptist-nashville\images\first_baptist_church_of_nashville_northwest_corner_2.jpg";
+                case {"elveden_hall", app.all_options(2)}
+                    app.Image2.ImageSource = "\\thoth.cecs.pdx.edu\Home02\shyamal\My Documents\MATLAB\assets\elveden-hall-suffolk-england\images\elvedenlocationb.jpg";
+                case {"hamilton", app.all_options(3)}
+                    app.Image2.ImageSource = "\\thoth.cecs.pdx.edu\Home02\shyamal\My Documents\MATLAB\assets\hamilton-mausoleum\images\hm_int_sm.jpg";
+                    [time,amplitude] = audioToArray(app,"\\thoth.cecs.pdx.edu\Home02\shyamal\My Documents\MATLAB\assets\hamilton-mausoleum\stereo\hm2_000_ortf_48k.wav"); 
+                    app.IR = amplitude; %Update global IR
+                    plot(app.IRgraph,time,amplitude);
+                case {"heslington", app.all_options(4)}
+                    app.Image2.ImageSource = "\\thoth.cecs.pdx.edu\Home02\shyamal\My Documents\MATLAB\assets\heslington-church-vaa-group-2\images\heslington_church_impulse_response-4900.jpg";
+                case {"maes_howe", app.all_options(5)}
+                    app.Image2.ImageSource = "\\thoth.cecs.pdx.edu\Home02\shyamal\My Documents\MATLAB\assets\maes-howe\images\mh_ext_sm.jpg";
+                
+
             end
+        end
+
+        % Button pushed function: LoadAudioButton
+        function LoadAudioButtonPushed(app, event)
+            [file,path] = uigetfile('*.mp3') ; %open a mp3 file
+            %[app.audioFile]=audioToArray(app,path);
+            app.filePath = path;
+             
         end
     end
 
@@ -313,6 +353,12 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             app.SetdesiredsizeofenviornemntinConfigurepanelandclickLabel_3.FontAngle = 'italic';
             app.SetdesiredsizeofenviornemntinConfigurepanelandclickLabel_3.Position = [20 5 376 22];
             app.SetdesiredsizeofenviornemntinConfigurepanelandclickLabel_3.Text = '3. Simulate the enviornemnt with a chosen audio file by clicking simulate!';
+
+            % Create Hyperlink
+            app.Hyperlink = uihyperlink(app.HomeTab);
+            app.Hyperlink.URL = 'https://www.openairlib.net/';
+            app.Hyperlink.Position = [568 1 63 22];
+            app.Hyperlink.Text = 'Open AIR ';
 
             % Create ConfigureTab
             app.ConfigureTab = uitab(app.TabGroup);
@@ -465,13 +511,13 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             app.SelectionTab = uitab(app.TabGroup);
             app.SelectionTab.Title = 'Selection';
 
-            % Create UIAxes4
-            app.UIAxes4 = uiaxes(app.SelectionTab);
-            title(app.UIAxes4, 'Loaded IR Response')
-            xlabel(app.UIAxes4, 'Time')
-            ylabel(app.UIAxes4, 'Y')
-            zlabel(app.UIAxes4, 'Z')
-            app.UIAxes4.Position = [319 41 300 229];
+            % Create IRgraph
+            app.IRgraph = uiaxes(app.SelectionTab);
+            title(app.IRgraph, 'Loaded IR Response')
+            xlabel(app.IRgraph, 'Time')
+            ylabel(app.IRgraph, 'Y')
+            zlabel(app.IRgraph, 'Z')
+            app.IRgraph.Position = [319 41 300 229];
 
             % Create ChooseEnviornmentPanel
             app.ChooseEnviornmentPanel = uipanel(app.SelectionTab);
@@ -547,6 +593,7 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
 
             % Create LoadAudioButton
             app.LoadAudioButton = uibutton(app.LoadAudioFilePanel, 'push');
+            app.LoadAudioButton.ButtonPushedFcn = createCallbackFcn(app, @LoadAudioButtonPushed, true);
             app.LoadAudioButton.Position = [115 99 69 22];
             app.LoadAudioButton.Text = 'Load Audio';
 
