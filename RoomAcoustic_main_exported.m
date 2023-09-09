@@ -52,9 +52,11 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
         IRgraph                         matlab.ui.control.UIAxes
         SimulationTab                   matlab.ui.container.Tab
         SimulatePanel                   matlab.ui.container.Panel
+        ErrorLabel_IR                   matlab.ui.control.Label
+        PlayAudioButton                 matlab.ui.control.Button
         ResetButton                     matlab.ui.control.Button
-        SimulatePlayAudioButton         matlab.ui.control.Button
-        UIAxes3                         matlab.ui.control.UIAxes
+        ApplyIRButton                   matlab.ui.control.Button
+        OutputGraph                     matlab.ui.control.UIAxes
         LoadAudioFilePanel              matlab.ui.container.Panel
         LoadAudioButton                 matlab.ui.control.Button
         FileNameEditField               matlab.ui.control.EditField
@@ -70,7 +72,9 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             "Hamilton-Mausoleum","Heslington-church","Maes-howe"]; % Description
         IR = [] % Impulse Repsonse
         audioFile = [] % Audio sample loaded
-        filePath = '' % Description
+        filePath = '' % pathname
+        applied_IR = [] % Final output with applied IR
+        fs_file = 48000 % sampling frequency
     end
     
     methods (Access = private)
@@ -170,7 +174,7 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
         function [time,amplitude] = audioToArray(app,filename)
             %Takes audio input and returns two arrays time and amplitude
             %axis
-            [y,fs] = audioread(filename);
+            [y,fs] = audioread(string(filename));
             y = y(:,1);
             dt = 1/fs;
             time = 0:dt:(length(y)*dt)-dt;
@@ -228,7 +232,7 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
         % Value changed function: SelectModeListBox
         function SelectModeListBoxValueChanged(app, event)
             value = app.SelectModeListBox.Value;
-            
+  
             switch value
                 case "All Options"
                     % update the selection dropdown
@@ -239,7 +243,7 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
                         app.Image2.ImageSource = "\\thoth.cecs.pdx.edu\Home02\shyamal\My Documents\MATLAB\assets\1st-baptist-nashville\images\first_baptist_church_of_nashville_northwest_corner_2.jpg";
                 end
                 case "Suggestion Mode"
-                    %returnOptions()
+                    
                     app.envSelect.Items = app.dropdown;
                 
             end
@@ -257,22 +261,53 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
                     app.Image2.ImageSource = "\\thoth.cecs.pdx.edu\Home02\shyamal\My Documents\MATLAB\assets\hamilton-mausoleum\images\hm_int_sm.jpg";
                     [time,amplitude] = audioToArray(app,"\\thoth.cecs.pdx.edu\Home02\shyamal\My Documents\MATLAB\assets\hamilton-mausoleum\stereo\hm2_000_ortf_48k.wav"); 
                     app.IR = amplitude; %Update global IR
-                    plot(app.IRgraph,time,amplitude);
+                    plot(app.IRgraph,time,app.IR);
                 case {"heslington", app.all_options(4)}
                     app.Image2.ImageSource = "\\thoth.cecs.pdx.edu\Home02\shyamal\My Documents\MATLAB\assets\heslington-church-vaa-group-2\images\heslington_church_impulse_response-4900.jpg";
                 case {"maes_howe", app.all_options(5)}
                     app.Image2.ImageSource = "\\thoth.cecs.pdx.edu\Home02\shyamal\My Documents\MATLAB\assets\maes-howe\images\mh_ext_sm.jpg";
                 
-
             end
         end
 
         % Button pushed function: LoadAudioButton
         function LoadAudioButtonPushed(app, event)
-            [file,path] = uigetfile('*.mp3') ; %open a mp3 file
-            %[app.audioFile]=audioToArray(app,path);
-            app.filePath = path;
+            [file, path] = uigetfile('*.mp3'); %open a mp3 file
+            app.FileNameEditField.Value = string(file);
+            figure(app.UIFigure);
+            [output,fs] = audioread(file);
+            app.audioFile = output(:,1);
+            dt = 1/fs;
+            app.fs_file = fs;
+            t = 0:dt:(length(app.audioFile)*dt)-dt;
+            plot(app.UIAxes2,t,app.audioFile)
+%             app.audioFile = amplitude;
+%             [time,amplitude]=audioToArray(app, path);
              
+        end
+
+        % Button pushed function: ApplyIRButton
+        function ApplyIRButtonPushed(app, event)
+           
+            if isempty(app.IR) ~= 1
+                output = conv(app.IR, app.audioFile);
+                dt = 1/app.fs_file;
+                t = 0:dt:(length(output)*dt)-dt;
+    
+                plot(app.OutputGraph,t,output);
+                app.applied_IR = output;
+            else
+                app.ErrorLabel_IR.Visible = "on";
+            end
+
+            
+        end
+
+        % Button pushed function: PlayAudioButton
+        function PlayAudioButtonPushed(app, event)
+            %app.applied_IR = pl
+            
+            soundsc(app.applied_IR)
         end
     end
 
@@ -602,23 +637,39 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             app.SimulatePanel.Title = 'Simulate';
             app.SimulatePanel.Position = [2 10 628 221];
 
-            % Create UIAxes3
-            app.UIAxes3 = uiaxes(app.SimulatePanel);
-            title(app.UIAxes3, 'Output')
-            xlabel(app.UIAxes3, 'Time')
-            ylabel(app.UIAxes3, 'Y')
-            zlabel(app.UIAxes3, 'Z')
-            app.UIAxes3.Position = [316 9 300 185];
+            % Create OutputGraph
+            app.OutputGraph = uiaxes(app.SimulatePanel);
+            title(app.OutputGraph, 'Output')
+            xlabel(app.OutputGraph, 'Time')
+            ylabel(app.OutputGraph, 'Y')
+            zlabel(app.OutputGraph, 'Z')
+            app.OutputGraph.Position = [316 9 300 185];
 
-            % Create SimulatePlayAudioButton
-            app.SimulatePlayAudioButton = uibutton(app.SimulatePanel, 'push');
-            app.SimulatePlayAudioButton.Position = [92 93 133 22];
-            app.SimulatePlayAudioButton.Text = 'Simulate + Play Audio';
+            % Create ApplyIRButton
+            app.ApplyIRButton = uibutton(app.SimulatePanel, 'push');
+            app.ApplyIRButton.ButtonPushedFcn = createCallbackFcn(app, @ApplyIRButtonPushed, true);
+            app.ApplyIRButton.Position = [123 132 100 22];
+            app.ApplyIRButton.Text = 'Apply IR';
 
             % Create ResetButton
             app.ResetButton = uibutton(app.SimulatePanel, 'push');
-            app.ResetButton.Position = [109 32 100 22];
+            app.ResetButton.Position = [125 12 100 22];
             app.ResetButton.Text = 'Reset';
+
+            % Create PlayAudioButton
+            app.PlayAudioButton = uibutton(app.SimulatePanel, 'push');
+            app.PlayAudioButton.ButtonPushedFcn = createCallbackFcn(app, @PlayAudioButtonPushed, true);
+            app.PlayAudioButton.Position = [126 70 100 22];
+            app.PlayAudioButton.Text = 'Play Audio';
+
+            % Create ErrorLabel_IR
+            app.ErrorLabel_IR = uilabel(app.SimulatePanel);
+            app.ErrorLabel_IR.FontWeight = 'bold';
+            app.ErrorLabel_IR.FontAngle = 'italic';
+            app.ErrorLabel_IR.FontColor = [0.902 0.3765 0.3765];
+            app.ErrorLabel_IR.Visible = 'off';
+            app.ErrorLabel_IR.Position = [130 104 88 22];
+            app.ErrorLabel_IR.Text = 'No IR selected';
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';
