@@ -44,6 +44,8 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
         SelectionTab                    matlab.ui.container.Tab
         Image2                          matlab.ui.control.Image
         ChooseEnviornmentPanel          matlab.ui.container.Panel
+        IRSelectDropDown                matlab.ui.control.DropDown
+        IRSelectDropDownLabel           matlab.ui.control.Label
         ErrorLabel                      matlab.ui.control.Label
         SelectModeListBox               matlab.ui.control.ListBox
         SelectModeListBoxLabel          matlab.ui.control.Label
@@ -68,8 +70,10 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
     properties (Access = private)
         dropdown = [] % Drop down options 
         
-        all_options = ["1st Baptist Nashivlle","Elveden Hall Suffolk England"...
-            "Hamilton-Mausoleum","Heslington-church","Maes-howe"]; % Description
+        all_options = ["1st Baptist Nashivlle","Elveden Hall Suffolk England",...
+            "Hamilton-Mausoleum","Heslington-church","Maes-howe" ,"Falkland Palace Dungeon",...
+            "Gill-heads-mine", "hoffmann-lime-kiln-langcliffeuk", "newgrange", "st-patricks-church-patrington",...
+            "trollers-gill", "tyndall-bruce-monument","usina-del-arte-symphony-hall"];
         IR = [] % Impulse Repsonse
         audioFile = [] % Audio sample loaded
         filePath = '' % pathname
@@ -89,14 +93,12 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             nashville.width = 15; %inmeters
             nashville.depth = 24;
             nashville.height = 15;
-            nashville.srdist = [18 26 30]; %close, far wide, balcony
     
             %elveden-hall-suffolk-england
             elveden_hall = struct();
             elveden_hall.width = 20;
             elveden_hall.depth = 30;
             elveden_hall.height = 10;
-            elveden_hall.srdist = [6 2 2 4]; %1a 3a 4a 18a
     
             %Hamilton-Mausoleum
             hamilton = struct();
@@ -110,15 +112,19 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             heslington.width = 12;
             heslington.depth = 12;
             heslington.height = 12;
-            heslington.srdist = [4.5 5 4.1 4.5 11 12.1];
     
             %maes-howe
             maes_howe = struct();
             maes_howe.width = 12;
             maes_howe.depth = 12;
             maes_howe.height = 12;
-            maes_howe.srdist = [2 2];
-    
+            
+            %falkland-palace-bottle-dungeon
+            falkland_dungeon = struct();
+            falkland_dungeon.width = 2;
+            falkland_dungeon.depth = 2;
+            falkland_dungeon.height = 2;
+            
             %Main enviornment struct to hold nested structs
             env = struct();
             env.("nashville") = nashville;
@@ -126,11 +132,13 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             env.("hamilton") = hamilton;
             env.("heslington") = heslington;
             env.("maes_howe") = maes_howe;
+            env.("falkland_dungeon") = falkland_dungeon;
+
 
             %Suggestion algorithm
             fn = fieldnames(env); %returns keys in database
-            tol = 3;
-            %dropdown = [];
+            tol = 2.5; %tolerance
+
             for k=1:numel(fn)
                 room = string(fn{k});
                 isWidthWithinRange = (Uwidth >= env.(room).width - tol) && ...
@@ -142,17 +150,17 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
     
                 if (isWidthWithinRange && isDepthWithinRange && isHeightWithinRange)
                     % check source/reciever distances
-                    a = 1;
                     arr = env.(room).srdist;
-                    for a=1:numel(arr)
-                        val = arr(a);
-                        isSRwithinRange = (U_sr_distance >= (val - 1)) && ...
-                            (U_sr_distance <= (val + 1));
-                        if isSRwithinRange
-                            options = [options string(room)]; %with IR info
-                            %app.dropdown = [options string(room)]; %just room name
-                        end
-                    end
+                    options = [options string(room)];
+%                     for a=1:numel(arr)
+%                         val = arr(a);
+%                         isSRwithinRange = (U_sr_distance >= (val - 1)) && ...
+%                             (U_sr_distance <= (val + 1));
+%                         if isSRwithinRange
+%                             options = [options string(room)]; %with IR info
+%                             %extended_IRs = [extended_IRs string(room) a]; %with extended IR options
+%                         end
+%                     end
                     %         if isfield(env.(room),SRHeight)
                     %
                     %
@@ -163,6 +171,9 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             %Format array to send to dropdown list
             % Delete the first element (first entry is always empty)
             options = options(1:end);
+            %extended_IRs = extended_IRs(1:end);
+
+
             app.dropdown = string(options);
             app.envSelect.Items = app.dropdown;
 
@@ -179,7 +190,7 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             dt = 1/fs;
             time = 0:dt:(length(y)*dt)-dt;
             amplitude = y;
-            %return {t,y};
+
         end
     end
     
@@ -237,10 +248,22 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
                 case "All Options"
                     % update the selection dropdown
                     app.envSelect.Items = app.all_options; 
-                    value = app.envSelect.Value;
-                switch value %edge case first option
+                    value1 = app.envSelect.Value;
+                switch value1 %edge case first option
                     case {"nashville", app.all_options(1)}
-                        app.Image2.ImageSource = "\\thoth.cecs.pdx.edu\Home02\shyamal\My Documents\MATLAB\assets\1st-baptist-nashville\images\first_baptist_church_of_nashville_northwest_corner_2.jpg";
+                        app.Image2.ImageSource = "assets\1st-baptist-nashville\images\first_baptist_church_of_nashville_northwest_corner_2.jpg";
+                    app.IRSelectDropDown.Items = ["Balcony" "Far" "Wide"];
+                    switch app.IRSelectDropDown.Value
+                        case "Balcony"
+                            [time,app.IR] = audioToArray(app,"assets\1st-baptist-nashville\stereo\1st_baptist_nashville_balcony.wav");
+                            plot(app.IRgraph,time,app.IR);
+                        case "Far"
+                            [time,app.IR] = audioToArray(app,"assets\1st-baptist-nashville\stereo\1st_baptist_far_close.wav");
+                            plot(app.IRgraph,time,app.IR);
+                        case "Wide"
+                            [time,app.IR] = audioToArray(app,"assets\1st-baptist-nashville\stereo\1st_baptist_far_wide.wav");
+                            plot(app.IRgraph,time,app.IR);
+                    end
                 end
                 case "Suggestion Mode"
                     
@@ -254,19 +277,73 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             value = app.envSelect.Value;
             switch value
                 case {"nashville", app.all_options(1)}
-                    app.Image2.ImageSource = "\\thoth.cecs.pdx.edu\Home02\shyamal\My Documents\MATLAB\assets\1st-baptist-nashville\images\first_baptist_church_of_nashville_northwest_corner_2.jpg";
+                    app.Image2.ImageSource = "assets\1st-baptist-nashville\images\first_baptist_church_of_nashville_northwest_corner_2.jpg";
+                    app.IRSelectDropDown.Items = ["Balcony" "Far" "Wide"];
+                    switch app.IRSelectDropDown.Value
+                        case "Balcony"
+                            [time,app.IR] = audioToArray(app,"assets\1st-baptist-nashville\stereo\1st_baptist_nashville_balcony.wav");
+                            plot(app.IRgraph,time,app.IR);
+                        case "Far"
+                            [time,app.IR] = audioToArray(app,"assets\1st-baptist-nashville\stereo\1st_baptist_far_close.wav");
+                            plot(app.IRgraph,time,app.IR);
+                        case "Wide"
+                            [time,app.IR] = audioToArray(app,"assets\1st-baptist-nashville\stereo\1st_baptist_far_wide.wav");
+                            plot(app.IRgraph,time,app.IR);
+                    end
                 case {"elveden_hall", app.all_options(2)}
-                    app.Image2.ImageSource = "\\thoth.cecs.pdx.edu\Home02\shyamal\My Documents\MATLAB\assets\elveden-hall-suffolk-england\images\elvedenlocationb.jpg";
+                    app.Image2.ImageSource = "assets\elveden-hall-suffolk-england\images\elvedenlocationb.jpg";
+                    app.IRSelectDropDown.Items = ["Marble" "Lord Cloaks" "Visitor Cloaks" "Smoking Room"];
+                        switch app.IRSelectDropDown.Value
+                            case "Marble"
+                                [time,app.IR] = audioToArray(app,"assets\elveden-hall-suffolk-england\stereo\1a_marble_hall.wav");
+                                plot(app.IRgraph,time,app.IR);
+                            case "Lord Cloaks"
+                                [time,app.IR] = audioToArray(app,"assets\elveden-hall-suffolk-england\stereo\3a_hats_cloaks_the_lord.wav");
+                                plot(app.IRgraph,time,app.IR);
+                            case "Visitor Cloaks"
+                                [time,app.IR] = audioToArray(app,"assets\elveden-hall-suffolk-england\stereo\4a_hats_cloaks_visitors.wav");
+                                plot(app.IRgraph,time,app.IR);
+                            case "Smoking Room"
+                                [time,app.IR] = audioToArray(app,"assets\elveden-hall-suffolk-england\stereo\18a_smoking_room.wav"); 
+                                plot(app.IRgraph,time,app.IR);
+                        end
                 case {"hamilton", app.all_options(3)}
-                    app.Image2.ImageSource = "\\thoth.cecs.pdx.edu\Home02\shyamal\My Documents\MATLAB\assets\hamilton-mausoleum\images\hm_int_sm.jpg";
-                    [time,amplitude] = audioToArray(app,"\\thoth.cecs.pdx.edu\Home02\shyamal\My Documents\MATLAB\assets\hamilton-mausoleum\stereo\hm2_000_ortf_48k.wav"); 
-                    app.IR = amplitude; %Update global IR
+                    app.IRSelectDropDown.Items = ["Main Chamber"];
+                    app.Image2.ImageSource = "assets\hamilton-mausoleum\images\hm_int_sm.jpg";
+                    [time,app.IR] = audioToArray(app,"assets\hamilton-mausoleum\stereo\hm2_000_ortf_48k.wav");
                     plot(app.IRgraph,time,app.IR);
                 case {"heslington", app.all_options(4)}
-                    app.Image2.ImageSource = "\\thoth.cecs.pdx.edu\Home02\shyamal\My Documents\MATLAB\assets\heslington-church-vaa-group-2\images\heslington_church_impulse_response-4900.jpg";
+                    app.Image2.ImageSource = "assets\heslington-church-vaa-group-2\images\heslington_church_impulse_response-4900.jpg";
+                    app.IRSelectDropDown.Items = ["01" "02" "03" "04" "05" "06" "07"];
+                    switch app.IRSelectDropDown.Value
+                            case "01"
+                                [time,app.IR] = audioToArray(app,"assets\heslington-church-vaa-group-2\b-format\impulseresponseheslingtonchurch-001.wav");
+                                plot(app.IRgraph,time,app.IR);
+                            case "02"
+                                [time,app.IR] = audioToArray(app,"assets\heslington-church-vaa-group-2\b-format\impulseresponseheslingtonchurch-002.wav");
+                                plot(app.IRgraph,time,app.IR);
+                            case "03"
+                                [time,app.IR] = audioToArray(app,"assets\heslington-church-vaa-group-2\b-format\impulseresponseheslingtonchurch-003.wav");
+                                plot(app.IRgraph,time,app.IR);
+                            case "04"
+                                [time,app.IR] = audioToArray(app,"assets\heslington-church-vaa-group-2\b-format\impulseresponseheslingtonchurch-004.wav");
+                                plot(app.IRgraph,time,app.IR);
+                            case "05"
+                                [time,app.IR] = audioToArray(app,"assets\heslington-church-vaa-group-2\b-format\impulseresponseheslingtonchurch-005.wav");
+                                plot(app.IRgraph,time,app.IR);
+                            case "06"
+                                [time,app.IR] = audioToArray(app,"assets\heslington-church-vaa-group-2\b-format\impulseresponseheslingtonchurch-006.wav");
+                                plot(app.IRgraph,time,app.IR);
+                            case "07"
+                                [time,app.IR] = audioToArray(app,"assets\heslington-church-vaa-group-2\b-format\impulseresponseheslingtonchurch-007.wav");
+                                plot(app.IRgraph,time,app.IR);
+                    end
                 case {"maes_howe", app.all_options(5)}
-                    app.Image2.ImageSource = "\\thoth.cecs.pdx.edu\Home02\shyamal\My Documents\MATLAB\assets\maes-howe\images\mh_ext_sm.jpg";
-                
+                    app.Image2.ImageSource = "assets\maes-howe\images\mh_ext_sm.jpg";
+                    app.IRSelectDropDown.Items = ["Center"];
+                    [time,app.IR] = audioToArray(app,"assets\maes-howe\stereo\mh3_000_ortf_48k.wav");
+                    plot(app.IRgraph,time,app.IR);
+
             end
         end
 
@@ -281,8 +358,7 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             app.fs_file = fs;
             t = 0:dt:(length(app.audioFile)*dt)-dt;
             plot(app.UIAxes2,t,app.audioFile)
-%             app.audioFile = amplitude;
-%             [time,amplitude]=audioToArray(app, path);
+
              
         end
 
@@ -563,27 +639,28 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             app.EnviornementSelectDropDownLabel = uilabel(app.ChooseEnviornmentPanel);
             app.EnviornementSelectDropDownLabel.HorizontalAlignment = 'right';
             app.EnviornementSelectDropDownLabel.FontWeight = 'bold';
-            app.EnviornementSelectDropDownLabel.Position = [293 81 124 22];
+            app.EnviornementSelectDropDownLabel.Position = [256 81 124 22];
             app.EnviornementSelectDropDownLabel.Text = 'Enviornement Select';
 
             % Create envSelect
             app.envSelect = uidropdown(app.ChooseEnviornmentPanel);
             app.envSelect.Items = {};
             app.envSelect.ValueChangedFcn = createCallbackFcn(app, @envSelectValueChanged, true);
-            app.envSelect.Position = [432 81 161 22];
+            app.envSelect.Position = [395 81 219 22];
             app.envSelect.Value = {};
 
             % Create SelectModeListBoxLabel
             app.SelectModeListBoxLabel = uilabel(app.ChooseEnviornmentPanel);
-            app.SelectModeListBoxLabel.HorizontalAlignment = 'right';
-            app.SelectModeListBoxLabel.Position = [22 82 72 22];
+            app.SelectModeListBoxLabel.HorizontalAlignment = 'center';
+            app.SelectModeListBoxLabel.FontWeight = 'bold';
+            app.SelectModeListBoxLabel.Position = [9 82 76 22];
             app.SelectModeListBoxLabel.Text = 'Select Mode';
 
             % Create SelectModeListBox
             app.SelectModeListBox = uilistbox(app.ChooseEnviornmentPanel);
             app.SelectModeListBox.Items = {'Suggestion Mode', 'All Options'};
             app.SelectModeListBox.ValueChangedFcn = createCallbackFcn(app, @SelectModeListBoxValueChanged, true);
-            app.SelectModeListBox.Position = [109 63 137 43];
+            app.SelectModeListBox.Position = [100 63 137 43];
             app.SelectModeListBox.Value = 'Suggestion Mode';
 
             % Create ErrorLabel
@@ -592,8 +669,23 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             app.ErrorLabel.FontAngle = 'italic';
             app.ErrorLabel.FontColor = [0.902 0.3765 0.3765];
             app.ErrorLabel.Visible = 'off';
-            app.ErrorLabel.Position = [70 27 184 22];
+            app.ErrorLabel.Position = [22 32 184 22];
             app.ErrorLabel.Text = 'No IR match user configuration';
+
+            % Create IRSelectDropDownLabel
+            app.IRSelectDropDownLabel = uilabel(app.ChooseEnviornmentPanel);
+            app.IRSelectDropDownLabel.HorizontalAlignment = 'right';
+            app.IRSelectDropDownLabel.FontWeight = 'bold';
+            app.IRSelectDropDownLabel.FontAngle = 'italic';
+            app.IRSelectDropDownLabel.Position = [324 32 56 22];
+            app.IRSelectDropDownLabel.Text = 'IR Select';
+
+            % Create IRSelectDropDown
+            app.IRSelectDropDown = uidropdown(app.ChooseEnviornmentPanel);
+            app.IRSelectDropDown.Items = {};
+            app.IRSelectDropDown.FontWeight = 'bold';
+            app.IRSelectDropDown.Position = [395 32 134 22];
+            app.IRSelectDropDown.Value = {};
 
             % Create Image2
             app.Image2 = uiimage(app.SelectionTab);
