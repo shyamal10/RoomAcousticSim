@@ -16,6 +16,10 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
         AcousticSimulatorLabel          matlab.ui.control.Label
         Image                           matlab.ui.control.Image
         ConfigureTab                    matlab.ui.container.Tab
+        TailCutoffKnob                  matlab.ui.control.Knob
+        TailCutoffKnobLabel             matlab.ui.control.Label
+        ReflectionCoeffecientKnob       matlab.ui.control.Knob
+        ReflectionCoeffecientKnobLabel  matlab.ui.control.Label
         SimulateButton                  matlab.ui.control.Button
         SourceRecieverCoordinatesPanel  matlab.ui.container.Panel
         recYSpinner                     matlab.ui.control.Spinner
@@ -60,6 +64,7 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
         ApplyIRButton                   matlab.ui.control.Button
         OutputGraph                     matlab.ui.control.UIAxes
         LoadAudioFilePanel              matlab.ui.container.Panel
+        PlaySample                      matlab.ui.control.Button
         LoadAudioButton                 matlab.ui.control.Button
         FileNameEditField               matlab.ui.control.EditField
         FileNameEditFieldLabel          matlab.ui.control.Label
@@ -79,6 +84,8 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
         filePath = '' % pathname
         applied_IR = [] % Final output with applied IR
         fs_file = 48000 % sampling frequency
+      
+        RIR = [] % Description
     end
     
     methods (Access = private)
@@ -105,8 +112,7 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             hamilton.width = 30;
             hamilton.depth = 25;
             hamilton.height = 37;
-            hamilton.srdist = [4.7];
-    
+                
             %heslington-church-vaa-group-2
             heslington = struct();
             heslington.width = 12;
@@ -124,7 +130,50 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             falkland_dungeon.width = 2;
             falkland_dungeon.depth = 2;
             falkland_dungeon.height = 2;
+
+            %Gill-heads-mine
+            gill_heads_mine = struct();
+            gill_heads_mine.width = 2;
+            gill_heads_mine.depth = 30;
+            gill_heads_mine.height = 4;
+
+            %hoffmann-lime
+            hoffmann = struct();
+            hoffmann.width = 8;
+            hoffmann.depth = 20;
+            hoffmann.height = 8;
+
+            %newgrange
+            newgrange = struct();
+            newgrange.width = 2;
+            newgrange.depth = 18;
+            newgrange.height = 2;
             
+            %st-patricks-church-patrington
+            patrington = struct();
+            patrington.width = 27;
+            patrington.depth = 46;
+            patrington.height = 57.5;
+
+            %trollers-gill
+            trollers_gill = struct();
+            trollers_gill.width = 100;
+            trollers_gill.depth = 40;
+            trollers_gill.height = 100;
+
+            %tyndall-bruce-monument 
+            tyndall_bruce = struct();
+            tyndall_bruce.width = 3.4;
+            tyndall_bruce.depth = 3.4;
+            tyndall_bruce.height = 3.4;
+
+            %usina-del-arte-symphony-hall
+            usina_del_arte = struct();
+            usina_del_arte.width = 28;
+            usina_del_arte.depth = 41;
+            usina_del_arte.height = 13;
+
+ 
             %Main enviornment struct to hold nested structs
             env = struct();
             env.("nashville") = nashville;
@@ -133,6 +182,13 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             env.("heslington") = heslington;
             env.("maes_howe") = maes_howe;
             env.("falkland_dungeon") = falkland_dungeon;
+            env.("gill_heads_mine") = gill_heads_mine;
+            env.("hoffmann") = hoffmann;
+            env.("newgrange") = newgrange;
+            env.("patrington") = patrington;
+            env.("trollers_gill") = trollers_gill;
+            env.("tyndall_bruce") = tyndall_bruce;
+            env.("usina_del_arte") = usina_del_arte;
 
 
             %Suggestion algorithm
@@ -150,7 +206,7 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
     
                 if (isWidthWithinRange && isDepthWithinRange && isHeightWithinRange)
                     % check source/reciever distances
-                    arr = env.(room).srdist;
+                    %arr = env.(room).srdist;
                     options = [options string(room)];
 %                     for a=1:numel(arr)
 %                         val = arr(a);
@@ -192,88 +248,79 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             amplitude = y;
 
         end
-    end
-    
+        
+        function [h] = rir(app, fs, mic, n, r, rm, src)
+            %RIR   Room Impulse Response.
+            %   [h] = RIR(FS, MIC, N, R, RM, SRC) performs a room impulse
+            %         response calculation by means of the mirror image method.
+            %
+            %      FS  = sample rate.
+            %      MIC = row vector giving the x,y,z coordinates of
+            %            the microphone.
+            %      N   = The program will account for (2*N+1)^3 virtual sources
+            %      R   = reflection coefficient for the walls, in general -1<R<1.
+            %      RM  = row vector giving the dimensions of the room.
+            %      SRC = row vector giving the x,y,z coordinates of
+            %            the sound source.
+            %   NOTES:
+            %
+            %   1) All distances are in meters.
+            %   2) The output is scaled such that the largest value of the
+            %      absolute value of the output vector is equal to one.
 
-    % Callbacks that handle component events
-    methods (Access = private)
+            %Version 3.4.2
+            %Copyright © 2003 Stephen G. McGovern
 
-        % Button pushed function: SimulateButton
-        function SimulateButtonPushed(app, event)
-    
-            %Write data into properties
-            Width = app.WidthSlider.Value;
-            Depth = app.DepthSlider.Value;
-            Height = app.HeightSlider.Value;
-            
-            sourceCoord = [app.sourceXSpinner.Value, app.sourceYSpinner.Value, app.sourceZSpinner.Value];
-            receiverCoord = [app.recXSpinner.Value,app.recYSpinner.Value,app.recZSpinner.Value];
-            
-            dist = norm(receiverCoord - sourceCoord);
+            nn=-n:1:n;                            % Index for the sequence
+            rms=nn+0.5-0.5*(-1).^nn;              % Part of equations 2,3,& 4
+            srcs=(-1).^(nn);                      % part of equations 2,3,& 4
+            xi=srcs*src(1)+rms*rm(1)-mic(1);      % Equation 2
+            yj=srcs*src(2)+rms*rm(2)-mic(2);      % Equation 3
+            zk=srcs*src(3)+rms*rm(3)-mic(3);      % Equation 4
 
-            %Creating room Dimensions array
-            roomDimensions = [Width Depth Height];
-            X = [0;roomDimensions(1);roomDimensions(1);0;0];
-            Y = [0;0;roomDimensions(2);roomDimensions(2);0];
-            Z = [0;0;0;0;0];
-            
-            hold(app.UIAxes,'on');
-            % draw a square in the xy plane with z = 0
-            plot3(app.UIAxes,X,Y,Z,"k","LineWidth",1.5);
-            % draw a square in the xy plane with z = 1
-            plot3(app.UIAxes,X,Y,Z+roomDimensions(3),"k","LineWidth",1.5); 
-            %set(app.UIAxes,gca,"View",[-28,35]); % set the azimuth and elevation of the plot
-            for k=1:length(X)-1
-                plot3(app.UIAxes, [X(k);X(k)],[Y(k);Y(k)],[0;roomDimensions(3)],"k","LineWidth",1.5);
-            end
-            plot3(app.UIAxes,sourceCoord(1),sourceCoord(2),sourceCoord(3),"bx","LineWidth",2)
-            plot3(app.UIAxes,receiverCoord(1),receiverCoord(2),receiverCoord(3),"ro","LineWidth",2)
+            [i,j,k]=meshgrid(xi,yj,zk);           % convert vectors to 3D matrices
+            d=sqrt(i.^2+j.^2+k.^2);               % Equation 5
+            time=round(fs*d/343)+1;               % Similar to Equation 6
 
-            hold(app.UIAxes,'off');
-            %plot3(app.UIAxes,Width,Height,Depth,'.')
+            [e,f,g]=meshgrid(nn, nn, nn);         % convert vectors to 3D matrices
+            c=r.^(abs(e)+abs(f)+abs(g));          % Equation 9
+            e=c./d;                               % Equivalent to Equation 10
 
-            %Update options list based on user input
-            returnOptions(app,Width,Depth,Height,dist);
-%             if isempty(app.dropdown2)
-%                 app.ErrorLabel.HandleVisibility('on');
-%             end
+            h=full(sparse(time(:),1,e(:)));       % Equivalent to equation 11
+            h=h/max(abs(h));                      % Scale output
+        end
+        
+        function [y] = fconv(app,x,h)
+            %FCONV Fast Convolution
+            %   [y] = FCONV(x, h) convolves x and h, and normalizes the output
+            %         to +-1.
+            %
+            %      x = input vector
+            %      h = input vector
+            %
+            %      See also CONV
+            %
+            %   NOTES:
+            %
+            %   1) I have a short article explaining what a convolution is.  It
+            %      is available at http://stevem.us/fconv.html.
+            %
+            %
+            %Version 1.0
+            %Coded by: Stephen G. McGovern, 2003-2004.
+
+            Ly = length(x) + length(h) - 1;		%
+            Ly2 = pow2(nextpow2(Ly));			% Find smallest power of 2 that is > Ly
+            X = fft(x, Ly2);					% Fast Fourier transform
+            H = fft(h, Ly2);					% Fast Fourier transform
+            Y = X .* H;							%
+            y = real(ifft(Y, Ly2));				% Inverse fast Fourier transform
+            y = y(1:1:Ly);						% Take just the first N elements
+            y=y/max(abs(y));					% Normalize the output
             
         end
-
-        % Value changed function: SelectModeListBox
-        function SelectModeListBoxValueChanged(app, event)
-            value = app.SelectModeListBox.Value;
-  
-            switch value
-                case "All Options"
-                    % update the selection dropdown
-                    app.envSelect.Items = app.all_options; 
-                    value1 = app.envSelect.Value;
-                switch value1 %edge case first option
-                    case {"nashville", app.all_options(1)}
-                        app.Image2.ImageSource = "assets\1st-baptist-nashville\images\first_baptist_church_of_nashville_northwest_corner_2.jpg";
-                    app.IRSelectDropDown.Items = ["Balcony" "Far" "Wide"];
-                    switch app.IRSelectDropDown.Value
-                        case "Balcony"
-                            [time,app.IR] = audioToArray(app,"assets\1st-baptist-nashville\stereo\1st_baptist_nashville_balcony.wav");
-                            plot(app.IRgraph,time,app.IR);
-                        case "Far"
-                            [time,app.IR] = audioToArray(app,"assets\1st-baptist-nashville\stereo\1st_baptist_far_close.wav");
-                            plot(app.IRgraph,time,app.IR);
-                        case "Wide"
-                            [time,app.IR] = audioToArray(app,"assets\1st-baptist-nashville\stereo\1st_baptist_far_wide.wav");
-                            plot(app.IRgraph,time,app.IR);
-                    end
-                end
-                case "Suggestion Mode"
-                    
-                    app.envSelect.Items = app.dropdown;
-                
-            end
-        end
-
-        % Value changed function: envSelect
-        function envSelectValueChanged(app, event)
+        
+        function updateEntries(app)
             value = app.envSelect.Value;
             switch value
                 case {"nashville", app.all_options(1)}
@@ -343,13 +390,222 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
                     app.IRSelectDropDown.Items = ["Center"];
                     [time,app.IR] = audioToArray(app,"assets\maes-howe\stereo\mh3_000_ortf_48k.wav");
                     plot(app.IRgraph,time,app.IR);
+                case {"falkland_dungeon", app.all_options(6)}
+                    app.Image2.ImageSource = "assets\falkland-palace-bottle-dungeon\images\dungeon.jpeg";
+                    app.IRSelectDropDown.Items = ["Bottle"];
+                    [time,app.IR] = audioToArray(app,"assets\falkland-palace-bottle-dungeon\b-format\bottledungeon1_sf_edited.wav");
+                    plot(app.IRgraph,time,app.IR);
+                case {"gill_heads_mine", app.all_options(7)}
+                    app.Image2.ImageSource = "assets\gill-heads-mine\images\mine_entrance_b.jpg";
+                    app.IRSelectDropDown.Items = ["Site One 1 Way" "Site One - 2 way" "Site Two - 1 Way" "Site Two - 2 Way"];
+                    switch app.IRSelectDropDown.Value
+                        case "Site One 1 Way"
+                            [time,app.IR] = audioToArray(app,"assets\gill-heads-mine\b-format\mine_site1_1way_bformat.wav");
+                            plot(app.IRgraph,time,app.IR);
+                        case "Site One - 2 way"
+                            [time,app.IR] = audioToArray(app,"assets\gill-heads-mine\b-format\mine_site1_2way_bformat.wav");
+                            plot(app.IRgraph,time,app.IR);
+                        case "Site Two - 1 Way"
+                            [time,app.IR] = audioToArray(app,"assets\gill-heads-mine\b-format\mine_site2_1way_bformat.wav");
+                            plot(app.IRgraph,time,app.IR);
+                        case "Site Two - 2 Way"
+                            [time,app.IR] = audioToArray(app,"assets\gill-heads-mine\b-format\mine_site2_2way_bformat.wav");
+                            plot(app.IRgraph,time,app.IR);
+                    end
+                case {"hoffmann", app.all_options(8)}
+                    app.Image2.ImageSource = "assets\hoffmann-lime-kiln-langcliffeuk\images\AdobeStock_118983058-scaled.jpeg";
+                    app.IRSelectDropDown.Items = ["p1" "p2" "p3" "p4" "p5" "p6"];
+                    switch app.IRSelectDropDown.Value
+                            case "p1"
+                                [time,app.IR] = audioToArray(app,"assets\hoffmann-lime-kiln-langcliffeuk\b-format\ir_p1.wav");
+                                plot(app.IRgraph,time,app.IR);
+                            case "p2"
+                                [time,app.IR] = audioToArray(app,"assets\hoffmann-lime-kiln-langcliffeuk\b-format\ir_p2.wav");
+                                plot(app.IRgraph,time,app.IR);
+                            case "p3"
+                                [time,app.IR] = audioToArray(app,"assets\hoffmann-lime-kiln-langcliffeuk\b-format\ir_p3.wav");
+                                plot(app.IRgraph,time,app.IR);
+                            case "p4"
+                                [time,app.IR] = audioToArray(app,"assets\hoffmann-lime-kiln-langcliffeuk\b-format\ir_p4.wav");
+                                plot(app.IRgraph,time,app.IR);
+                            case "p5"
+                                [time,app.IR] = audioToArray(app,"assets\hoffmann-lime-kiln-langcliffeuk\b-format\ir_p5.wav");
+                                plot(app.IRgraph,time,app.IR);
+                            case "p6"
+                                [time,app.IR] = audioToArray(app,"assets\hoffmann-lime-kiln-langcliffeuk\b-format\ir_p6.wav");
+                                plot(app.IRgraph,time,app.IR);
+                    end
+                case {"newgrange", app.all_options(9)}
+                    app.Image2.ImageSource = "assets\newgrange\images\structure.jpg";
+                    app.IRSelectDropDown.Items = ["s1" "s2" "s3" "s4" "s5" "s6"];
+                    switch app.IRSelectDropDown.Value
+                            case "s1"
+                                [time,app.IR] = audioToArray(app,"assets\newgrange\b-format\newgrange_s1r1.wav");
+                                plot(app.IRgraph,time,app.IR);
+                            case "s2"
+                                [time,app.IR] = audioToArray(app,"assets\newgrange\b-format\newgrange_s2r1.wav");
+                                plot(app.IRgraph,time,app.IR);
+                            case "s3"
+                                [time,app.IR] = audioToArray(app,"assets\newgrange\b-format\newgrange_s3r1.wav");
+                                plot(app.IRgraph,time,app.IR);
+                            case "s4"
+                                [time,app.IR] = audioToArray(app,"assets\newgrange\b-format\newgrange_s4r1.wav");
+                                plot(app.IRgraph,time,app.IR);
+                            case "s5"
+                                [time,app.IR] = audioToArray(app,"assets\newgrange\b-format\newgrange_s5r1.wav");
+                                plot(app.IRgraph,time,app.IR);
+                            case "s6"
+                                [time,app.IR] = audioToArray(app,"assets\newgrange\b-format\newgrange_s6r1.wav");
+                                plot(app.IRgraph,time,app.IR);
+                    end
+                  case {"patrington", app.all_options(10)}
+                    app.Image2.ImageSource = "assets\st-patricks-church-patrington\images\sl381519.jpg";
+                    app.IRSelectDropDown.Items = ["s1" "s2" "s3"];
+                    switch app.IRSelectDropDown.Value
+                            case "s1"
+                                [time,app.IR] = audioToArray(app,"assets\st-patricks-church-patrington\b-format\soundfield_s1r1.wav");
+                                plot(app.IRgraph,time,app.IR);
+                            case "s2"
+                                [time,app.IR] = audioToArray(app,"assets\st-patricks-church-patrington\b-format\soundfield_s2r2.wav");
+                                plot(app.IRgraph,time,app.IR);
+                            case "s3"
+                                [time,app.IR] = audioToArray(app,"assets\st-patricks-church-patrington\b-format\soundfield_s3r3.wav");
+                                plot(app.IRgraph,time,app.IR);
+                    end
+                 case {"trollers_gill", app.all_options(11)}
+                    app.Image2.ImageSource = "assets\trollers-gill\images\site1_b.jpg";
+                    app.IRSelectDropDown.Items = ["site 1" "site 2" "site 3"];
+                    switch app.IRSelectDropDown.Value
+                        case "site 1"
+                                [time,app.IR] = audioToArray(app,"assets\trollers-gill\b-format\dales_site1_4way_bformat.wav");
+                                plot(app.IRgraph,time,app.IR);
+                        case "site 2"
+                                [time,app.IR] = audioToArray(app,"assets\trollers-gill\b-format\dales_site2_4way_bformat.wav");
+                                plot(app.IRgraph,time,app.IR);
+                        case "site 3"
+                                [time,app.IR] = audioToArray(app,"assets\trollers-gill\b-format\dales_site3_4way_bformat.wav");
+                                plot(app.IRgraph,time,app.IR);
+                    end
+                case {"tyndall_bruce", app.all_options(12)}
+                    app.Image2.ImageSource = "assets\tyndall-bruce-monument\images\dsc00532.jpg";
+                    app.IRSelectDropDown.Items = ["tyndall"];
+                
+                    [time,app.IR] = audioToArray(app,"assets\tyndall-bruce-monument\b-format\tyndall_bruce_b_format.wav");
+                    plot(app.IRgraph,time,app.IR);
+                case {"usina_del_arte", app.all_options(12)}
+                    app.Image2.ImageSource = "assets\usina-del-arte-symphony-hall\images\usina_full.jpg";
+                    app.IRSelectDropDown.Items = ["w" "x" "y" "z"];
+                    switch app.IRSelectDropDown.Value
+                        case "w"
+                                [time,app.IR] = audioToArray(app,"assets\usina-del-arte-symphony-hall\b-format\ir_w_m5.s1.wav");
+                                plot(app.IRgraph,time,app.IR);
+                        case "x"
+                                [time,app.IR] = audioToArray(app,"assets\usina-del-arte-symphony-hall\b-format\ir_x_m5.s1.wav");
+                                plot(app.IRgraph,time,app.IR);
+                        case "y"
+                                [time,app.IR] = audioToArray(app,"assets\usina-del-arte-symphony-hall\b-format\ir_y_m5.s1.wav");
+                                plot(app.IRgraph,time,app.IR);
+                        case "z"
+                                [time,app.IR] = audioToArray(app,"assets\usina-del-arte-symphony-hall\b-format\ir_z_m5.s1.wav");
+                                plot(app.IRgraph,time,app.IR);
+                    end    
 
             end
+        end
+    end
+    
+
+    % Callbacks that handle component events
+    methods (Access = private)
+
+        % Button pushed function: SimulateButton
+        function SimulateButtonPushed(app, event)
+    
+            %Write data into properties
+            Width = app.WidthSlider.Value;
+            Depth = app.DepthSlider.Value;
+            Height = app.HeightSlider.Value;
+            
+            sourceCoord = [app.sourceXSpinner.Value, app.sourceYSpinner.Value, app.sourceZSpinner.Value];
+            receiverCoord = [app.recXSpinner.Value,app.recYSpinner.Value,app.recZSpinner.Value];
+            
+            %app.sourceCoords = sourceCoord;
+            %app.recieverCoords = receiverCoord;
+
+            dist = norm(receiverCoord - sourceCoord);
+
+            %Creating room Dimensions array
+            roomDimensions = [Width Depth Height];
+            X = [0;roomDimensions(1);roomDimensions(1);0;0];
+            Y = [0;0;roomDimensions(2);roomDimensions(2);0];
+            Z = [0;0;0;0;0];
+            
+            hold(app.UIAxes,'on');
+            % draw a square in the xy plane with z = 0
+            plot3(app.UIAxes,X,Y,Z,"k","LineWidth",1.5);
+            % draw a square in the xy plane with z = 1
+            plot3(app.UIAxes,X,Y,Z+roomDimensions(3),"k","LineWidth",1.5); 
+            %set(app.UIAxes,gca,"View",[-28,35]); % set the azimuth and elevation of the plot
+            for k=1:length(X)-1
+                plot3(app.UIAxes, [X(k);X(k)],[Y(k);Y(k)],[0;roomDimensions(3)],"k","LineWidth",1.5);
+            end
+            plot3(app.UIAxes,sourceCoord(1),sourceCoord(2),sourceCoord(3),"bx","LineWidth",2)
+            plot3(app.UIAxes,receiverCoord(1),receiverCoord(2),receiverCoord(3),"ro","LineWidth",2)
+
+            hold(app.UIAxes,'off');
+            %plot3(app.UIAxes,Width,Height,Depth,'.')
+
+            %Update options list based on user input
+            returnOptions(app,Width,Depth,Height,dist);
+            updateEntries(app);
+            %Generate Room Impulse Response
+            app.RIR = rir(app,app.fs_file,receiverCoord, 6 ,0.75 ,roomDimensions,sourceCoord);
+
+            
+        end
+
+        % Value changed function: SelectModeListBox
+        function SelectModeListBoxValueChanged(app, event)
+            value = app.SelectModeListBox.Value;
+  
+            switch value
+                case "Suggestion Mode"
+                    
+                    app.envSelect.Items = app.dropdown;
+                    updateEntries(app);
+                
+                case "All Options"
+                    % update the selection dropdown
+                    app.envSelect.Items = app.all_options; 
+                    value1 = app.envSelect.Value;
+                    switch value1 %edge case first option
+                        case {"nashville", app.all_options(1)}
+                            app.Image2.ImageSource = "assets\1st-baptist-nashville\images\first_baptist_church_of_nashville_northwest_corner_2.jpg";
+                        app.IRSelectDropDown.Items = ["Balcony" "Far" "Wide"];
+                        switch app.IRSelectDropDown.Value
+                            case "Balcony"
+                                [time,app.IR] = audioToArray(app,"assets\1st-baptist-nashville\stereo\1st_baptist_nashville_balcony.wav");
+                                plot(app.IRgraph,time,app.IR);
+                            case "Far"
+                                [time,app.IR] = audioToArray(app,"assets\1st-baptist-nashville\stereo\1st_baptist_far_close.wav");
+                                plot(app.IRgraph,time,app.IR);
+                            case "Wide"
+                                [time,app.IR] = audioToArray(app,"assets\1st-baptist-nashville\stereo\1st_baptist_far_wide.wav");
+                                plot(app.IRgraph,time,app.IR);
+                        end
+                    end
+                
+            end
+        end
+
+        % Value changed function: envSelect
+        function envSelectValueChanged(app, event)
+            updateEntries(app);
         end
 
         % Button pushed function: LoadAudioButton
         function LoadAudioButtonPushed(app, event)
-            [file, path] = uigetfile('*.mp3'); %open a mp3 file
+            [file, path] = uigetfile('*.wav'); %open a mp3 file
             app.FileNameEditField.Value = string(file);
             figure(app.UIFigure);
             [output,fs] = audioread(file);
@@ -364,10 +620,22 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
 
         % Button pushed function: ApplyIRButton
         function ApplyIRButtonPushed(app, event)
-           
-            if isempty(app.IR) ~= 1
+            if isempty(app.RIR) == 1 %If RIR is empty just use IR
                 output = conv(app.IR, app.audioFile);
-                dt = 1/app.fs_file;
+                dt = 1/app.fs_file; 
+                t = 0:dt:(length(output)*dt)-dt;
+    
+                plot(app.OutputGraph,t,output);
+                app.applied_IR = output;
+                
+            elseif isempty(app.IR) ~= 1 % Using both RIR and IR (Full)
+
+                app.ErrorLabel_IR.Visible = "off";
+
+                output1 = fconv(app,app.audioFile,app.RIR);
+
+                output = conv(app.IR, output1);
+                dt = 1/app.fs_file; 
                 t = 0:dt:(length(output)*dt)-dt;
     
                 plot(app.OutputGraph,t,output);
@@ -383,7 +651,14 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
         function PlayAudioButtonPushed(app, event)
             %app.applied_IR = pl
             
-            soundsc(app.applied_IR)
+            soundsc(app.applied_IR,app.fs_file)
+        end
+
+        % Button pushed function: PlaySample
+        function PlaySampleButtonPushed(app, event)
+            if isempty(app.audioFile) ~= 1
+                soundsc(app.audioFile,app.fs_file)
+            end
         end
     end
 
@@ -489,7 +764,7 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             app.UIAxes.XGrid = 'on';
             app.UIAxes.YGrid = 'on';
             app.UIAxes.ZGrid = 'on';
-            app.UIAxes.Position = [124 222 377 227];
+            app.UIAxes.Position = [12 222 377 227];
 
             % Create ParametersPanel
             app.ParametersPanel = uipanel(app.ConfigureTab);
@@ -554,7 +829,7 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
 
             % Create sourceXSpinner
             app.sourceXSpinner = uispinner(app.SourceRecieverCoordinatesPanel);
-            app.sourceXSpinner.Limits = [0 50];
+            app.sourceXSpinner.Limits = [0 100];
             app.sourceXSpinner.Position = [65 99 47 22];
 
             % Create YSpinnerLabel
@@ -565,7 +840,7 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
 
             % Create sourceYSpinner
             app.sourceYSpinner = uispinner(app.SourceRecieverCoordinatesPanel);
-            app.sourceYSpinner.Limits = [0 50];
+            app.sourceYSpinner.Limits = [0 100];
             app.sourceYSpinner.Position = [66 62 47 22];
 
             % Create ZSpinnerLabel
@@ -576,7 +851,7 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
 
             % Create sourceZSpinner
             app.sourceZSpinner = uispinner(app.SourceRecieverCoordinatesPanel);
-            app.sourceZSpinner.Limits = [0 10];
+            app.sourceZSpinner.Limits = [0 100];
             app.sourceZSpinner.Position = [66 29 47 22];
 
             % Create XSpinner_2Label
@@ -587,7 +862,7 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
 
             % Create recXSpinner
             app.recXSpinner = uispinner(app.SourceRecieverCoordinatesPanel);
-            app.recXSpinner.Limits = [0 50];
+            app.recXSpinner.Limits = [0 100];
             app.recXSpinner.Position = [190 98 47 22];
 
             % Create ZSpinner_2Label
@@ -598,7 +873,7 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
 
             % Create recZSpinner
             app.recZSpinner = uispinner(app.SourceRecieverCoordinatesPanel);
-            app.recZSpinner.Limits = [0 50];
+            app.recZSpinner.Limits = [0 100];
             app.recZSpinner.Position = [191 28 47 22];
 
             % Create YSpinner_2Label
@@ -609,7 +884,7 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
 
             % Create recYSpinner
             app.recYSpinner = uispinner(app.SourceRecieverCoordinatesPanel);
-            app.recYSpinner.Limits = [0 50];
+            app.recYSpinner.Limits = [0 100];
             app.recYSpinner.Position = [191 61 47 22];
 
             % Create SimulateButton
@@ -617,6 +892,29 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             app.SimulateButton.ButtonPushedFcn = createCallbackFcn(app, @SimulateButtonPushed, true);
             app.SimulateButton.Position = [544 82 87 22];
             app.SimulateButton.Text = 'Simulate';
+
+            % Create ReflectionCoeffecientKnobLabel
+            app.ReflectionCoeffecientKnobLabel = uilabel(app.ConfigureTab);
+            app.ReflectionCoeffecientKnobLabel.HorizontalAlignment = 'center';
+            app.ReflectionCoeffecientKnobLabel.Position = [510 230 123 22];
+            app.ReflectionCoeffecientKnobLabel.Text = 'Reflection Coeffecient';
+
+            % Create ReflectionCoeffecientKnob
+            app.ReflectionCoeffecientKnob = uiknob(app.ConfigureTab, 'continuous');
+            app.ReflectionCoeffecientKnob.Limits = [-1 1];
+            app.ReflectionCoeffecientKnob.Position = [551 277 39 39];
+
+            % Create TailCutoffKnobLabel
+            app.TailCutoffKnobLabel = uilabel(app.ConfigureTab);
+            app.TailCutoffKnobLabel.HorizontalAlignment = 'center';
+            app.TailCutoffKnobLabel.Position = [543 344 59 22];
+            app.TailCutoffKnobLabel.Text = 'Tail Cutoff';
+
+            % Create TailCutoffKnob
+            app.TailCutoffKnob = uiknob(app.ConfigureTab, 'continuous');
+            app.TailCutoffKnob.Limits = [1 16];
+            app.TailCutoffKnob.Position = [552 391 39 39];
+            app.TailCutoffKnob.Value = 1;
 
             % Create SelectionTab
             app.SelectionTab = uitab(app.TabGroup);
@@ -723,6 +1021,12 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             app.LoadAudioButton.ButtonPushedFcn = createCallbackFcn(app, @LoadAudioButtonPushed, true);
             app.LoadAudioButton.Position = [115 99 69 22];
             app.LoadAudioButton.Text = 'Load Audio';
+
+            % Create PlaySample
+            app.PlaySample = uibutton(app.LoadAudioFilePanel, 'push');
+            app.PlaySample.ButtonPushedFcn = createCallbackFcn(app, @PlaySampleButtonPushed, true);
+            app.PlaySample.Position = [101 54 100 22];
+            app.PlaySample.Text = 'Play Audio';
 
             % Create SimulatePanel
             app.SimulatePanel = uipanel(app.SimulationTab);
