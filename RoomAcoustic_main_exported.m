@@ -13,9 +13,10 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
         DirectionsLabel                 matlab.ui.control.Label
         ThisisanacousticroomsimulatorusingOpenAIRIRLabel  matlab.ui.control.Label
         WelcomePanel                    matlab.ui.container.Panel
-        AcousticSimulatorLabel          matlab.ui.control.Label
+        RoomAcousticSimulatorLabel      matlab.ui.control.Label
         Image                           matlab.ui.control.Image
         ConfigureTab                    matlab.ui.container.Tab
+        ResetButton_2                   matlab.ui.control.Button
         TailCutoffKnob                  matlab.ui.control.Knob
         TailCutoffKnobLabel             matlab.ui.control.Label
         ReflectionCoeffecientKnob       matlab.ui.control.Knob
@@ -23,17 +24,17 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
         SimulateButton                  matlab.ui.control.Button
         SourceRecieverCoordinatesPanel  matlab.ui.container.Panel
         recYSpinner                     matlab.ui.control.Spinner
-        YSpinner_2Label                 matlab.ui.control.Label
+        YmLabel_2                       matlab.ui.control.Label
         recZSpinner                     matlab.ui.control.Spinner
-        ZSpinner_2Label                 matlab.ui.control.Label
+        ZmLabel_2                       matlab.ui.control.Label
         recXSpinner                     matlab.ui.control.Spinner
-        XSpinner_2Label                 matlab.ui.control.Label
+        XmLabel_2                       matlab.ui.control.Label
         sourceZSpinner                  matlab.ui.control.Spinner
-        ZSpinnerLabel                   matlab.ui.control.Label
+        ZmLabel                         matlab.ui.control.Label
         sourceYSpinner                  matlab.ui.control.Spinner
-        YSpinnerLabel                   matlab.ui.control.Label
+        YmLabel                         matlab.ui.control.Label
         sourceXSpinner                  matlab.ui.control.Spinner
-        XSpinnerLabel                   matlab.ui.control.Label
+        XmLabel                         matlab.ui.control.Label
         RecieveroLabel                  matlab.ui.control.Label
         SourcexLabel                    matlab.ui.control.Label
         RoomSizeParametersPanel         matlab.ui.container.Panel
@@ -59,13 +60,13 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
         SimulationTab                   matlab.ui.container.Tab
         SimulatePanel                   matlab.ui.container.Panel
         ErrorLabel_IR                   matlab.ui.control.Label
-        PlayAudioButton                 matlab.ui.control.Button
+        PlayButton                      matlab.ui.control.Button
         ResetButton                     matlab.ui.control.Button
         ApplyIRButton                   matlab.ui.control.Button
         OutputGraph                     matlab.ui.control.UIAxes
-        LoadAudioFilePanel              matlab.ui.container.Panel
+        LoadSourceAudioFilePanel        matlab.ui.container.Panel
         PlaySample                      matlab.ui.control.Button
-        LoadAudioButton                 matlab.ui.control.Button
+        LoadButton                      matlab.ui.control.Button
         FileNameEditField               matlab.ui.control.EditField
         FileNameEditFieldLabel          matlab.ui.control.Label
         UIAxes2                         matlab.ui.control.UIAxes
@@ -78,7 +79,9 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
         all_options = ["1st Baptist Nashivlle","Elveden Hall Suffolk England",...
             "Hamilton-Mausoleum","Heslington-church","Maes-howe" ,"Falkland Palace Dungeon",...
             "Gill-heads-mine", "hoffmann-lime-kiln-langcliffeuk", "newgrange", "st-patricks-church-patrington",...
-            "trollers-gill", "tyndall-bruce-monument","usina-del-arte-symphony-hall"];
+            "trollers-gill", "tyndall-bruce-monument","usina-del-arte-symphony-hall",...
+             "Creswell-Crags","York-Guildhall-Council-Chamber","Shrine & Parish-church",...
+             "Lady-Chapel-St-Albans-Cathedral","York Minster",];
         IR = [] % Impulse Repsonse
         audioFile = [] % Audio sample loaded
         filePath = '' % pathname
@@ -90,7 +93,7 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
     
     methods (Access = private)
         
-        function returnOptions(app,Uwidth,Udepth,Uheight,U_sr_distance)
+        function returnOptions(app,Uwidth,Udepth,Uheight)
              % Return array of rooms based on configuration 
             options = []; %dropdown options array
             %database
@@ -172,6 +175,37 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             usina_del_arte.width = 28;
             usina_del_arte.depth = 41;
             usina_del_arte.height = 13;
+            
+            %Creswell-Crags 
+            creswell_crags= struct();
+            creswell_crags.width = 90;
+            creswell_crags.depth = 100;
+            creswell_crags.height = 100;
+
+            %York-Guildhall-Council-Chamber
+            york_guildhall= struct();
+            york_guildhall.width = 10;
+            york_guildhall.depth = 15;
+            york_guildhall.height = 9;
+
+            %Shrine & Parish-church
+            shrine_parish = struct();
+            shrine_parish.width = 14;
+            shrine_parish.depth = 28;
+            shrine_parish.height = 6;
+
+            %Lady-Chapel-St-Albans-Cathedral
+            lady_chapel = struct();
+            lady_chapel.width = 9;
+            lady_chapel.depth = 12;
+            lady_chapel.height = 43;
+
+            %York Minster
+            york_minster = struct();
+            york_minster.width = 70;
+            york_minster.depth = 76;
+            york_minster.height = 27;
+
 
  
             %Main enviornment struct to hold nested structs
@@ -189,7 +223,11 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             env.("trollers_gill") = trollers_gill;
             env.("tyndall_bruce") = tyndall_bruce;
             env.("usina_del_arte") = usina_del_arte;
-
+            env.("creswell_crags") = creswell_crags;
+            env.("york_guildhall") = york_guildhall;
+            env.("shrine_parish") = shrine_parish;
+            env.("lady_chapel") = lady_chapel;
+            env.("york_minster") = york_minster;
 
             %Suggestion algorithm
             fn = fieldnames(env); %returns keys in database
@@ -322,7 +360,7 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
         
         function updateEntries(app)
             value = app.envSelect.Value;
-            switch value
+            switch string(value)
                 case {"nashville", app.all_options(1)}
                     app.Image2.ImageSource = "assets\1st-baptist-nashville\images\first_baptist_church_of_nashville_northwest_corner_2.jpg";
                     app.IRSelectDropDown.Items = ["Balcony" "Far" "Wide"];
@@ -331,10 +369,10 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
                             [time,app.IR] = audioToArray(app,"assets\1st-baptist-nashville\stereo\1st_baptist_nashville_balcony.wav");
                             plot(app.IRgraph,time,app.IR);
                         case "Far"
-                            [time,app.IR] = audioToArray(app,"assets\1st-baptist-nashville\stereo\1st_baptist_far_close.wav");
+                            [time,app.IR] = audioToArray(app,"assets\1st-baptist-nashville\stereo\1st_baptist_nashville_far_close.wav");
                             plot(app.IRgraph,time,app.IR);
                         case "Wide"
-                            [time,app.IR] = audioToArray(app,"assets\1st-baptist-nashville\stereo\1st_baptist_far_wide.wav");
+                            [time,app.IR] = audioToArray(app,"assets\1st-baptist-nashville\stereo\1st_baptist_nashville_far_wide.wav");
                             plot(app.IRgraph,time,app.IR);
                     end
                 case {"elveden_hall", app.all_options(2)}
@@ -492,7 +530,7 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
                 
                     [time,app.IR] = audioToArray(app,"assets\tyndall-bruce-monument\b-format\tyndall_bruce_b_format.wav");
                     plot(app.IRgraph,time,app.IR);
-                case {"usina_del_arte", app.all_options(12)}
+                case {"usina_del_arte", app.all_options(13)}
                     app.Image2.ImageSource = "assets\usina-del-arte-symphony-hall\images\usina_full.jpg";
                     app.IRSelectDropDown.Items = ["w" "x" "y" "z"];
                     switch app.IRSelectDropDown.Value
@@ -508,7 +546,82 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
                         case "z"
                                 [time,app.IR] = audioToArray(app,"assets\usina-del-arte-symphony-hall\b-format\ir_z_m5.s1.wav");
                                 plot(app.IRgraph,time,app.IR);
-                    end    
+                    end   
+                case {"creswell_crags", app.all_options(14)}
+                    app.Image2.ImageSource = "assets\creswell-crags\images\cc.jpg";
+                    app.IRSelectDropDown.Items = ["bottom level" "main level" "pinehole" "grundypath"];
+                    switch app.IRSelectDropDown.Value
+                        case "bottom level"
+                                [time,app.IR] = audioToArray(app,"assets\creswell-crags\b-format\1_r_rhcbottom_s_rhc_bottom.wav");
+                                plot(app.IRgraph,time,app.IR);
+                        case "main level"
+                                [time,app.IR] = audioToArray(app,"assets\creswell-crags\b-format\3_s_mainlevel_r_furtherin.wav");
+                                plot(app.IRgraph,time,app.IR);
+                        case "pinehole"
+                                [time,app.IR] = audioToArray(app,"assets\creswell-crags\b-format\6_r_pinholemouth_s_pinholepath.wav");
+                                plot(app.IRgraph,time,app.IR);
+                        case "grundypath"
+                                [time,app.IR] = audioToArray(app,"assets\creswell-crags\b-format\8_r_grundymouth_s_grundypath.wav");
+                                plot(app.IRgraph,time,app.IR);
+                    end
+                case {"york_guildhall", app.all_options(15)}
+                    app.Image2.ImageSource = "assets\york-guildhall-council-chamber\images\_dsc3190-edit-13.jpg";
+                    app.IRSelectDropDown.Items = ["R1" "R2" "R3" "R4"];
+                    switch app.IRSelectDropDown.Value
+                        case "R1"
+                                [time,app.IR] = audioToArray(app,"assets\york-guildhall-council-chamber\b-format\councilchamber_s1_r1_ir_1_96000.wav");
+                                plot(app.IRgraph,time,app.IR);
+                        case "R2"
+                                [time,app.IR] = audioToArray(app,"assets\york-guildhall-council-chamber\b-format\councilchamber_s1_r2_ir_1_96000.wav");
+                                plot(app.IRgraph,time,app.IR);
+                        case "R3"
+                                [time,app.IR] = audioToArray(app,"assets\york-guildhall-council-chamber\b-format\councilchamber_s1_r3_ir_1_96000.wav");
+                                plot(app.IRgraph,time,app.IR);
+                        case "R4"
+                                [time,app.IR] = audioToArray(app,"assets\york-guildhall-council-chamber\b-format\councilchamber_s1_r4_ir_1_96000.wav");
+                                plot(app.IRgraph,time,app.IR);
+                    end
+                case {"shrine_parish", app.all_options(16)}
+                    app.Image2.ImageSource = "assets\shrine-and-parish-church-all-saints-north-street-_\images\R.jpg";
+                    app.IRSelectDropDown.Items = ["R1" "R2" "R3" "R4" "R5" "R6"];
+                    switch app.IRSelectDropDown.Value
+                        case "R1"
+                                [time,app.IR] = audioToArray(app,"assets\shrine-and-parish-church-all-saints-north-street-_\b-format\r1_90_bformat.wav");
+                                plot(app.IRgraph,time,app.IR);
+                        case "R2"
+                                [time,app.IR] = audioToArray(app,"assets\shrine-and-parish-church-all-saints-north-street-_\b-format\r2_90_bformat.wav");
+                                plot(app.IRgraph,time,app.IR);
+                        case "R3"
+                                [time,app.IR] = audioToArray(app,"assets\shrine-and-parish-church-all-saints-north-street-_\b-format\r3_90_bformat.wav");
+                                plot(app.IRgraph,time,app.IR);
+                        case "R4"
+                                [time,app.IR] = audioToArray(app,"assets\shrine-and-parish-church-all-saints-north-street-_\b-format\r4_90_bformat.wav");
+                                plot(app.IRgraph,time,app.IR);
+                        case "R5"
+                                [time,app.IR] = audioToArray(app,"assets\shrine-and-parish-church-all-saints-north-street-_\b-format\r5_90_bformat.wav");
+                                plot(app.IRgraph,time,app.IR);
+                        case "R6"
+                                [time,app.IR] = audioToArray(app,"assets\shrine-and-parish-church-all-saints-north-street-_\b-format\r6_90_bformat.wav");
+                                plot(app.IRgraph,time,app.IR);
+                    end
+                case {"lady_chapel", app.all_options(17)}
+                    app.Image2.ImageSource = "assets\lady-chapel-st-albans-cathedral\images\lady_chapel_1.jpg";
+                    app.IRSelectDropDown.Items = ["stalbans a" "stalbans b"];
+                    switch app.IRSelectDropDown.Value
+                        case "stalbans a"
+                                [time,app.IR] = audioToArray(app,"assets\lady-chapel-st-albans-cathedral\b-format\stalbans_a_wxyz.wav");
+                                plot(app.IRgraph,time,app.IR);
+                        case "stalbans b"
+                                [time,app.IR] = audioToArray(app,"assets\lady-chapel-st-albans-cathedral\b-format\stalbans_b_wxyz.wav");
+                                plot(app.IRgraph,time,app.IR);
+                    end
+                case {"york_minster", app.all_options(18)}
+                    app.Image2.ImageSource = "assets\york-minster\images\dsc_0285.jpg";
+                    app.IRSelectDropDown.Items = ["york"];
+                
+                    [time,app.IR] = audioToArray(app,"assets\york-minster\b-format\minster1_bformat_48k.wav");
+                    plot(app.IRgraph,time,app.IR);
+
 
             end
         end
@@ -556,7 +669,7 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             %plot3(app.UIAxes,Width,Height,Depth,'.')
 
             %Update options list based on user input
-            returnOptions(app,Width,Depth,Height,dist);
+            returnOptions(app,Width,Depth,Height);
             updateEntries(app);
             %Generate Room Impulse Response
             app.RIR = rir(app,app.fs_file,receiverCoord, 6 ,0.75 ,roomDimensions,sourceCoord);
@@ -570,7 +683,6 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
   
             switch value
                 case "Suggestion Mode"
-                    
                     app.envSelect.Items = app.dropdown;
                     updateEntries(app);
                 
@@ -587,10 +699,10 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
                                 [time,app.IR] = audioToArray(app,"assets\1st-baptist-nashville\stereo\1st_baptist_nashville_balcony.wav");
                                 plot(app.IRgraph,time,app.IR);
                             case "Far"
-                                [time,app.IR] = audioToArray(app,"assets\1st-baptist-nashville\stereo\1st_baptist_far_close.wav");
+                                [time,app.IR] = audioToArray(app,"assets\1st-baptist-nashville\stereo\1st_baptist_nashville_far_close.wav");
                                 plot(app.IRgraph,time,app.IR);
                             case "Wide"
-                                [time,app.IR] = audioToArray(app,"assets\1st-baptist-nashville\stereo\1st_baptist_far_wide.wav");
+                                [time,app.IR] = audioToArray(app,"assets\1st-baptist-nashville\stereo\1st_baptist_nashville_far_wide.wav");
                                 plot(app.IRgraph,time,app.IR);
                         end
                     end
@@ -603,8 +715,8 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             updateEntries(app);
         end
 
-        % Button pushed function: LoadAudioButton
-        function LoadAudioButtonPushed(app, event)
+        % Button pushed function: LoadButton
+        function LoadButtonPushed(app, event)
             [file, path] = uigetfile('*.wav'); %open a mp3 file
             app.FileNameEditField.Value = string(file);
             figure(app.UIFigure);
@@ -647,8 +759,8 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             
         end
 
-        % Button pushed function: PlayAudioButton
-        function PlayAudioButtonPushed(app, event)
+        % Button pushed function: PlayButton
+        function PlayButtonPushed(app, event)
             %app.applied_IR = pl
             
             soundsc(app.applied_IR,app.fs_file)
@@ -659,6 +771,22 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             if isempty(app.audioFile) ~= 1
                 soundsc(app.audioFile,app.fs_file)
             end
+        end
+
+        % Button pushed function: ResetButton, ResetButton_2
+        function ResetButtonPushed(app, event)
+            % Make current instance of app invisible
+            app.UIFigure.Visible = 'off';
+            % Open 2nd instance of app
+            RoomAcoustic_main();  % <--------------The name of your app
+            % Delete old instance
+            close(app.UIFigure) %Thanks to Guillaume for suggesting to use close() rather than delete()
+        end
+
+        % Value changed function: IRSelectDropDown
+        function IRSelectDropDownValueChanged(app, event)
+            value = app.IRSelectDropDown.Value;
+            updateEntries(app)
         end
     end
 
@@ -691,14 +819,14 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             app.Image.Position = [273 -56 324 324];
             app.Image.ImageSource = 'Dawn-over-the-Minack-1-1.jpg';
 
-            % Create AcousticSimulatorLabel
-            app.AcousticSimulatorLabel = uilabel(app.WelcomePanel);
-            app.AcousticSimulatorLabel.FontName = 'Cambria';
-            app.AcousticSimulatorLabel.FontSize = 24;
-            app.AcousticSimulatorLabel.FontWeight = 'bold';
-            app.AcousticSimulatorLabel.FontAngle = 'italic';
-            app.AcousticSimulatorLabel.Position = [27 107 214 32];
-            app.AcousticSimulatorLabel.Text = ' Acoustic Simulator';
+            % Create RoomAcousticSimulatorLabel
+            app.RoomAcousticSimulatorLabel = uilabel(app.WelcomePanel);
+            app.RoomAcousticSimulatorLabel.FontName = 'Cambria';
+            app.RoomAcousticSimulatorLabel.FontSize = 23;
+            app.RoomAcousticSimulatorLabel.FontWeight = 'bold';
+            app.RoomAcousticSimulatorLabel.FontAngle = 'italic';
+            app.RoomAcousticSimulatorLabel.Position = [11 69 277 75];
+            app.RoomAcousticSimulatorLabel.Text = 'Room Acoustic Simulator';
 
             % Create InstructionsPanel
             app.InstructionsPanel = uipanel(app.HomeTab);
@@ -821,66 +949,66 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             app.RecieveroLabel.Position = [167 124 67 22];
             app.RecieveroLabel.Text = 'Reciever ''o''';
 
-            % Create XSpinnerLabel
-            app.XSpinnerLabel = uilabel(app.SourceRecieverCoordinatesPanel);
-            app.XSpinnerLabel.HorizontalAlignment = 'right';
-            app.XSpinnerLabel.Position = [25 99 25 22];
-            app.XSpinnerLabel.Text = 'X';
+            % Create XmLabel
+            app.XmLabel = uilabel(app.SourceRecieverCoordinatesPanel);
+            app.XmLabel.HorizontalAlignment = 'right';
+            app.XmLabel.Position = [19 99 31 22];
+            app.XmLabel.Text = 'X(m)';
 
             % Create sourceXSpinner
             app.sourceXSpinner = uispinner(app.SourceRecieverCoordinatesPanel);
             app.sourceXSpinner.Limits = [0 100];
             app.sourceXSpinner.Position = [65 99 47 22];
 
-            % Create YSpinnerLabel
-            app.YSpinnerLabel = uilabel(app.SourceRecieverCoordinatesPanel);
-            app.YSpinnerLabel.HorizontalAlignment = 'right';
-            app.YSpinnerLabel.Position = [26 62 25 22];
-            app.YSpinnerLabel.Text = 'Y';
+            % Create YmLabel
+            app.YmLabel = uilabel(app.SourceRecieverCoordinatesPanel);
+            app.YmLabel.HorizontalAlignment = 'right';
+            app.YmLabel.Position = [20 62 31 22];
+            app.YmLabel.Text = 'Y(m)';
 
             % Create sourceYSpinner
             app.sourceYSpinner = uispinner(app.SourceRecieverCoordinatesPanel);
             app.sourceYSpinner.Limits = [0 100];
             app.sourceYSpinner.Position = [66 62 47 22];
 
-            % Create ZSpinnerLabel
-            app.ZSpinnerLabel = uilabel(app.SourceRecieverCoordinatesPanel);
-            app.ZSpinnerLabel.HorizontalAlignment = 'right';
-            app.ZSpinnerLabel.Position = [26 29 25 22];
-            app.ZSpinnerLabel.Text = 'Z';
+            % Create ZmLabel
+            app.ZmLabel = uilabel(app.SourceRecieverCoordinatesPanel);
+            app.ZmLabel.HorizontalAlignment = 'right';
+            app.ZmLabel.Position = [20 29 31 22];
+            app.ZmLabel.Text = 'Z(m)';
 
             % Create sourceZSpinner
             app.sourceZSpinner = uispinner(app.SourceRecieverCoordinatesPanel);
             app.sourceZSpinner.Limits = [0 100];
             app.sourceZSpinner.Position = [66 29 47 22];
 
-            % Create XSpinner_2Label
-            app.XSpinner_2Label = uilabel(app.SourceRecieverCoordinatesPanel);
-            app.XSpinner_2Label.HorizontalAlignment = 'right';
-            app.XSpinner_2Label.Position = [150 98 25 22];
-            app.XSpinner_2Label.Text = 'X';
+            % Create XmLabel_2
+            app.XmLabel_2 = uilabel(app.SourceRecieverCoordinatesPanel);
+            app.XmLabel_2.HorizontalAlignment = 'right';
+            app.XmLabel_2.Position = [144 98 31 22];
+            app.XmLabel_2.Text = 'X(m)';
 
             % Create recXSpinner
             app.recXSpinner = uispinner(app.SourceRecieverCoordinatesPanel);
             app.recXSpinner.Limits = [0 100];
             app.recXSpinner.Position = [190 98 47 22];
 
-            % Create ZSpinner_2Label
-            app.ZSpinner_2Label = uilabel(app.SourceRecieverCoordinatesPanel);
-            app.ZSpinner_2Label.HorizontalAlignment = 'right';
-            app.ZSpinner_2Label.Position = [151 28 25 22];
-            app.ZSpinner_2Label.Text = 'Z';
+            % Create ZmLabel_2
+            app.ZmLabel_2 = uilabel(app.SourceRecieverCoordinatesPanel);
+            app.ZmLabel_2.HorizontalAlignment = 'right';
+            app.ZmLabel_2.Position = [145 28 31 22];
+            app.ZmLabel_2.Text = 'Z(m)';
 
             % Create recZSpinner
             app.recZSpinner = uispinner(app.SourceRecieverCoordinatesPanel);
             app.recZSpinner.Limits = [0 100];
             app.recZSpinner.Position = [191 28 47 22];
 
-            % Create YSpinner_2Label
-            app.YSpinner_2Label = uilabel(app.SourceRecieverCoordinatesPanel);
-            app.YSpinner_2Label.HorizontalAlignment = 'right';
-            app.YSpinner_2Label.Position = [151 61 25 22];
-            app.YSpinner_2Label.Text = 'Y';
+            % Create YmLabel_2
+            app.YmLabel_2 = uilabel(app.SourceRecieverCoordinatesPanel);
+            app.YmLabel_2.HorizontalAlignment = 'right';
+            app.YmLabel_2.Position = [145 61 31 22];
+            app.YmLabel_2.Text = 'Y(m)';
 
             % Create recYSpinner
             app.recYSpinner = uispinner(app.SourceRecieverCoordinatesPanel);
@@ -896,25 +1024,37 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             % Create ReflectionCoeffecientKnobLabel
             app.ReflectionCoeffecientKnobLabel = uilabel(app.ConfigureTab);
             app.ReflectionCoeffecientKnobLabel.HorizontalAlignment = 'center';
-            app.ReflectionCoeffecientKnobLabel.Position = [510 230 123 22];
+            app.ReflectionCoeffecientKnobLabel.FontSize = 8;
+            app.ReflectionCoeffecientKnobLabel.Position = [548 235 84 22];
             app.ReflectionCoeffecientKnobLabel.Text = 'Reflection Coeffecient';
 
             % Create ReflectionCoeffecientKnob
             app.ReflectionCoeffecientKnob = uiknob(app.ConfigureTab, 'continuous');
             app.ReflectionCoeffecientKnob.Limits = [-1 1];
-            app.ReflectionCoeffecientKnob.Position = [551 277 39 39];
+            app.ReflectionCoeffecientKnob.FontSize = 8;
+            app.ReflectionCoeffecientKnob.Position = [570 279 39 39];
 
             % Create TailCutoffKnobLabel
             app.TailCutoffKnobLabel = uilabel(app.ConfigureTab);
             app.TailCutoffKnobLabel.HorizontalAlignment = 'center';
-            app.TailCutoffKnobLabel.Position = [543 344 59 22];
+            app.TailCutoffKnobLabel.FontSize = 8;
+            app.TailCutoffKnobLabel.Position = [570 344 41 22];
             app.TailCutoffKnobLabel.Text = 'Tail Cutoff';
 
             % Create TailCutoffKnob
             app.TailCutoffKnob = uiknob(app.ConfigureTab, 'continuous');
             app.TailCutoffKnob.Limits = [1 16];
-            app.TailCutoffKnob.Position = [552 391 39 39];
+            app.TailCutoffKnob.MajorTicks = [1 4 8 12 16];
+            app.TailCutoffKnob.MinorTicks = [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15];
+            app.TailCutoffKnob.FontSize = 8;
+            app.TailCutoffKnob.Position = [571 376 39 39];
             app.TailCutoffKnob.Value = 1;
+
+            % Create ResetButton_2
+            app.ResetButton_2 = uibutton(app.ConfigureTab, 'push');
+            app.ResetButton_2.ButtonPushedFcn = createCallbackFcn(app, @ResetButtonPushed, true);
+            app.ResetButton_2.Position = [544 33 90 22];
+            app.ResetButton_2.Text = 'Reset';
 
             % Create SelectionTab
             app.SelectionTab = uitab(app.TabGroup);
@@ -981,6 +1121,7 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             % Create IRSelectDropDown
             app.IRSelectDropDown = uidropdown(app.ChooseEnviornmentPanel);
             app.IRSelectDropDown.Items = {};
+            app.IRSelectDropDown.ValueChangedFcn = createCallbackFcn(app, @IRSelectDropDownValueChanged, true);
             app.IRSelectDropDown.FontWeight = 'bold';
             app.IRSelectDropDown.Position = [395 32 134 22];
             app.IRSelectDropDown.Value = {};
@@ -993,13 +1134,13 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             app.SimulationTab = uitab(app.TabGroup);
             app.SimulationTab.Title = 'Simulation';
 
-            % Create LoadAudioFilePanel
-            app.LoadAudioFilePanel = uipanel(app.SimulationTab);
-            app.LoadAudioFilePanel.Title = 'Load Audio File';
-            app.LoadAudioFilePanel.Position = [2 235 636 221];
+            % Create LoadSourceAudioFilePanel
+            app.LoadSourceAudioFilePanel = uipanel(app.SimulationTab);
+            app.LoadSourceAudioFilePanel.Title = 'Load Source Audio File';
+            app.LoadSourceAudioFilePanel.Position = [2 235 636 221];
 
             % Create UIAxes2
-            app.UIAxes2 = uiaxes(app.LoadAudioFilePanel);
+            app.UIAxes2 = uiaxes(app.LoadSourceAudioFilePanel);
             title(app.UIAxes2, 'Selected Audio File')
             xlabel(app.UIAxes2, 'Time')
             ylabel(app.UIAxes2, 'Y')
@@ -1007,26 +1148,26 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             app.UIAxes2.Position = [312 8 300 185];
 
             % Create FileNameEditFieldLabel
-            app.FileNameEditFieldLabel = uilabel(app.LoadAudioFilePanel);
+            app.FileNameEditFieldLabel = uilabel(app.LoadSourceAudioFilePanel);
             app.FileNameEditFieldLabel.HorizontalAlignment = 'right';
-            app.FileNameEditFieldLabel.Position = [30 148 60 22];
+            app.FileNameEditFieldLabel.Position = [31 127 60 22];
             app.FileNameEditFieldLabel.Text = 'File Name';
 
             % Create FileNameEditField
-            app.FileNameEditField = uieditfield(app.LoadAudioFilePanel, 'text');
-            app.FileNameEditField.Position = [105 148 100 22];
+            app.FileNameEditField = uieditfield(app.LoadSourceAudioFilePanel, 'text');
+            app.FileNameEditField.Position = [106 127 100 22];
 
-            % Create LoadAudioButton
-            app.LoadAudioButton = uibutton(app.LoadAudioFilePanel, 'push');
-            app.LoadAudioButton.ButtonPushedFcn = createCallbackFcn(app, @LoadAudioButtonPushed, true);
-            app.LoadAudioButton.Position = [115 99 69 22];
-            app.LoadAudioButton.Text = 'Load Audio';
+            % Create LoadButton
+            app.LoadButton = uibutton(app.LoadSourceAudioFilePanel, 'push');
+            app.LoadButton.ButtonPushedFcn = createCallbackFcn(app, @LoadButtonPushed, true);
+            app.LoadButton.Position = [224 127 82 22];
+            app.LoadButton.Text = 'Load';
 
             % Create PlaySample
-            app.PlaySample = uibutton(app.LoadAudioFilePanel, 'push');
+            app.PlaySample = uibutton(app.LoadSourceAudioFilePanel, 'push');
             app.PlaySample.ButtonPushedFcn = createCallbackFcn(app, @PlaySampleButtonPushed, true);
-            app.PlaySample.Position = [101 54 100 22];
-            app.PlaySample.Text = 'Play Audio';
+            app.PlaySample.Position = [119 63 75 22];
+            app.PlaySample.Text = 'Play';
 
             % Create SimulatePanel
             app.SimulatePanel = uipanel(app.SimulationTab);
@@ -1049,14 +1190,15 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
 
             % Create ResetButton
             app.ResetButton = uibutton(app.SimulatePanel, 'push');
+            app.ResetButton.ButtonPushedFcn = createCallbackFcn(app, @ResetButtonPushed, true);
             app.ResetButton.Position = [125 12 100 22];
             app.ResetButton.Text = 'Reset';
 
-            % Create PlayAudioButton
-            app.PlayAudioButton = uibutton(app.SimulatePanel, 'push');
-            app.PlayAudioButton.ButtonPushedFcn = createCallbackFcn(app, @PlayAudioButtonPushed, true);
-            app.PlayAudioButton.Position = [126 70 100 22];
-            app.PlayAudioButton.Text = 'Play Audio';
+            % Create PlayButton
+            app.PlayButton = uibutton(app.SimulatePanel, 'push');
+            app.PlayButton.ButtonPushedFcn = createCallbackFcn(app, @PlayButtonPushed, true);
+            app.PlayButton.Position = [137 70 74 22];
+            app.PlayButton.Text = 'Play';
 
             % Create ErrorLabel_IR
             app.ErrorLabel_IR = uilabel(app.SimulatePanel);
