@@ -7,20 +7,17 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
         HomeTab                         matlab.ui.container.Tab
         Hyperlink                       matlab.ui.control.Hyperlink
         InstructionsPanel               matlab.ui.container.Panel
+        ThisisanacousticroomsimulatorpoweredbytheOpenAIRdatabaseLabel_2  matlab.ui.control.Label
         SetdesiredsizeofenviornemntinConfigurepanelandclickLabel_3  matlab.ui.control.Label
         SetdesiredsizeofenviornemntinConfigurepanelandclickLabel_2  matlab.ui.control.Label
         SetdesiredsizeofenviornemntinConfigurepanelandclickLabel  matlab.ui.control.Label
         DirectionsLabel                 matlab.ui.control.Label
-        ThisisanacousticroomsimulatorusingOpenAIRIRLabel  matlab.ui.control.Label
+        ThisisanacousticroomsimulatorpoweredbytheOpenAIRdatabaseLabel  matlab.ui.control.Label
         WelcomePanel                    matlab.ui.container.Panel
         RoomAcousticSimulatorLabel      matlab.ui.control.Label
         Image                           matlab.ui.control.Image
         ConfigureTab                    matlab.ui.container.Tab
         ResetButton_2                   matlab.ui.control.Button
-        TailCutoffKnob                  matlab.ui.control.Knob
-        TailCutoffKnobLabel             matlab.ui.control.Label
-        ReflectionCoeffecientKnob       matlab.ui.control.Knob
-        ReflectionCoeffecientKnobLabel  matlab.ui.control.Label
         SimulateButton                  matlab.ui.control.Button
         SourceRecieverCoordinatesPanel  matlab.ui.container.Panel
         recYSpinner                     matlab.ui.control.Spinner
@@ -38,12 +35,12 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
         RecieveroLabel                  matlab.ui.control.Label
         SourcexLabel                    matlab.ui.control.Label
         RoomSizeParametersPanel         matlab.ui.container.Panel
-        HeightSlider                    matlab.ui.control.Slider
-        HeightSliderLabel               matlab.ui.control.Label
-        DepthSlider                     matlab.ui.control.Slider
-        DepthSlider_2Label              matlab.ui.control.Label
-        WidthSlider_2Label              matlab.ui.control.Label
-        WidthSlider                     matlab.ui.control.Slider
+        HeightmSlider                   matlab.ui.control.Slider
+        HeightmSliderLabel              matlab.ui.control.Label
+        DepthmSlider                    matlab.ui.control.Slider
+        DepthmSliderLabel               matlab.ui.control.Label
+        WidthmSliderLabel               matlab.ui.control.Label
+        WidthmSlider                    matlab.ui.control.Slider
         ParametersPanel                 matlab.ui.container.Panel
         UIAxes                          matlab.ui.control.UIAxes
         SelectionTab                    matlab.ui.container.Tab
@@ -231,7 +228,7 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
 
             %Suggestion algorithm
             fn = fieldnames(env); %returns keys in database
-            tol = 2.5; %tolerance
+            tol = 3; %tolerance
 
             for k=1:numel(fn)
                 room = string(fn{k});
@@ -242,7 +239,7 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
                 isHeightWithinRange = (Uheight >= env.(room).height - tol) && ...
                     (Uheight <= env.(room).height + tol);
     
-                if (isWidthWithinRange && isDepthWithinRange && isHeightWithinRange)
+                if (isWidthWithinRange || isDepthWithinRange || isHeightWithinRange)
                     % check source/reciever distances
                     %arr = env.(room).srdist;
                     options = [options string(room)];
@@ -273,6 +270,8 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
 
             if isempty(options)
                 app.ErrorLabel.Visible= 'on';
+                %app.SelectModeListBox.Value = "All Options";
+
             end
         end
         
@@ -635,9 +634,9 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
         function SimulateButtonPushed(app, event)
     
             %Write data into properties
-            Width = app.WidthSlider.Value;
-            Depth = app.DepthSlider.Value;
-            Height = app.HeightSlider.Value;
+            Width = app.WidthmSlider.Value;
+            Depth = app.DepthmSlider.Value;
+            Height = app.HeightmSlider.Value;
             
             sourceCoord = [app.sourceXSpinner.Value, app.sourceYSpinner.Value, app.sourceZSpinner.Value];
             receiverCoord = [app.recXSpinner.Value,app.recYSpinner.Value,app.recZSpinner.Value];
@@ -720,7 +719,8 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             [file, path] = uigetfile('*.wav'); %open a mp3 file
             app.FileNameEditField.Value = string(file);
             figure(app.UIFigure);
-            [output,fs] = audioread(file);
+            [filepath,~,~] = fileparts(path);
+            [output,fs] = audioread(fullfile(filepath,file));
             app.audioFile = output(:,1);
             dt = 1/fs;
             app.fs_file = fs;
@@ -816,7 +816,7 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
 
             % Create Image
             app.Image = uiimage(app.WelcomePanel);
-            app.Image.Position = [273 -56 324 324];
+            app.Image.Position = [145 -55 326 258];
             app.Image.ImageSource = 'Dawn-over-the-Minack-1-1.jpg';
 
             % Create RoomAcousticSimulatorLabel
@@ -825,48 +825,57 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             app.RoomAcousticSimulatorLabel.FontSize = 23;
             app.RoomAcousticSimulatorLabel.FontWeight = 'bold';
             app.RoomAcousticSimulatorLabel.FontAngle = 'italic';
-            app.RoomAcousticSimulatorLabel.Position = [11 69 277 75];
+            app.RoomAcousticSimulatorLabel.Position = [173 158 277 75];
             app.RoomAcousticSimulatorLabel.Text = 'Room Acoustic Simulator';
 
             % Create InstructionsPanel
             app.InstructionsPanel = uipanel(app.HomeTab);
             app.InstructionsPanel.Title = 'Instructions';
-            app.InstructionsPanel.Position = [11 28 605 185];
+            app.InstructionsPanel.Position = [7 28 619 185];
 
-            % Create ThisisanacousticroomsimulatorusingOpenAIRIRLabel
-            app.ThisisanacousticroomsimulatorusingOpenAIRIRLabel = uilabel(app.InstructionsPanel);
-            app.ThisisanacousticroomsimulatorusingOpenAIRIRLabel.FontName = 'Cambria';
-            app.ThisisanacousticroomsimulatorusingOpenAIRIRLabel.FontAngle = 'italic';
-            app.ThisisanacousticroomsimulatorusingOpenAIRIRLabel.Position = [12 127 277 22];
-            app.ThisisanacousticroomsimulatorusingOpenAIRIRLabel.Text = 'This is an acoustic room simulator using Open AIR IR. ';
+            % Create ThisisanacousticroomsimulatorpoweredbytheOpenAIRdatabaseLabel
+            app.ThisisanacousticroomsimulatorpoweredbytheOpenAIRdatabaseLabel = uilabel(app.InstructionsPanel);
+            app.ThisisanacousticroomsimulatorpoweredbytheOpenAIRdatabaseLabel.FontName = 'Cambria';
+            app.ThisisanacousticroomsimulatorpoweredbytheOpenAIRdatabaseLabel.FontAngle = 'italic';
+            app.ThisisanacousticroomsimulatorpoweredbytheOpenAIRdatabaseLabel.Position = [12 127 534 22];
+            app.ThisisanacousticroomsimulatorpoweredbytheOpenAIRdatabaseLabel.Text = 'This is an acoustic room simulator powered by the Open AIR database. First set your room dimensions to';
 
             % Create DirectionsLabel
             app.DirectionsLabel = uilabel(app.InstructionsPanel);
+            app.DirectionsLabel.HorizontalAlignment = 'center';
             app.DirectionsLabel.FontName = 'Cambria';
+            app.DirectionsLabel.FontWeight = 'bold';
             app.DirectionsLabel.FontAngle = 'italic';
-            app.DirectionsLabel.Position = [13 87 56 22];
+            app.DirectionsLabel.Position = [274 85 61 22];
             app.DirectionsLabel.Text = 'Directions';
 
             % Create SetdesiredsizeofenviornemntinConfigurepanelandclickLabel
             app.SetdesiredsizeofenviornemntinConfigurepanelandclickLabel = uilabel(app.InstructionsPanel);
             app.SetdesiredsizeofenviornemntinConfigurepanelandclickLabel.FontName = 'Cambria';
             app.SetdesiredsizeofenviornemntinConfigurepanelandclickLabel.FontAngle = 'italic';
-            app.SetdesiredsizeofenviornemntinConfigurepanelandclickLabel.Position = [20 63 365 22];
-            app.SetdesiredsizeofenviornemntinConfigurepanelandclickLabel.Text = '1. Set desired size of enviornemnt in Configure panel, and click simulate';
+            app.SetdesiredsizeofenviornemntinConfigurepanelandclickLabel.Position = [20 63 607 22];
+            app.SetdesiredsizeofenviornemntinConfigurepanelandclickLabel.Text = '1. Set desired size of enviornemnt in Configure panel, and click simulate (if you don''t wish to set size, move to next step)';
 
             % Create SetdesiredsizeofenviornemntinConfigurepanelandclickLabel_2
             app.SetdesiredsizeofenviornemntinConfigurepanelandclickLabel_2 = uilabel(app.InstructionsPanel);
             app.SetdesiredsizeofenviornemntinConfigurepanelandclickLabel_2.FontName = 'Cambria';
             app.SetdesiredsizeofenviornemntinConfigurepanelandclickLabel_2.FontAngle = 'italic';
-            app.SetdesiredsizeofenviornemntinConfigurepanelandclickLabel_2.Position = [20 35 556 22];
-            app.SetdesiredsizeofenviornemntinConfigurepanelandclickLabel_2.Text = '2. Select desired enviornement stage (suggestions will be populated based on user selection in Configuration)';
+            app.SetdesiredsizeofenviornemntinConfigurepanelandclickLabel_2.Position = [20 35 580 22];
+            app.SetdesiredsizeofenviornemntinConfigurepanelandclickLabel_2.Text = '2. Select desired enviornement stage (suggestions will be populated based on user selection or choose all options) ';
 
             % Create SetdesiredsizeofenviornemntinConfigurepanelandclickLabel_3
             app.SetdesiredsizeofenviornemntinConfigurepanelandclickLabel_3 = uilabel(app.InstructionsPanel);
             app.SetdesiredsizeofenviornemntinConfigurepanelandclickLabel_3.FontName = 'Cambria';
             app.SetdesiredsizeofenviornemntinConfigurepanelandclickLabel_3.FontAngle = 'italic';
-            app.SetdesiredsizeofenviornemntinConfigurepanelandclickLabel_3.Position = [20 5 376 22];
-            app.SetdesiredsizeofenviornemntinConfigurepanelandclickLabel_3.Text = '3. Simulate the enviornemnt with a chosen audio file by clicking simulate!';
+            app.SetdesiredsizeofenviornemntinConfigurepanelandclickLabel_3.Position = [20 5 385 22];
+            app.SetdesiredsizeofenviornemntinConfigurepanelandclickLabel_3.Text = '3. Simulate the enviornemnt by loading an audio file and clicking ''Apply IR''!';
+
+            % Create ThisisanacousticroomsimulatorpoweredbytheOpenAIRdatabaseLabel_2
+            app.ThisisanacousticroomsimulatorpoweredbytheOpenAIRdatabaseLabel_2 = uilabel(app.InstructionsPanel);
+            app.ThisisanacousticroomsimulatorpoweredbytheOpenAIRdatabaseLabel_2.FontName = 'Cambria';
+            app.ThisisanacousticroomsimulatorpoweredbytheOpenAIRdatabaseLabel_2.FontAngle = 'italic';
+            app.ThisisanacousticroomsimulatorpoweredbytheOpenAIRdatabaseLabel_2.Position = [10 108 546 22];
+            app.ThisisanacousticroomsimulatorpoweredbytheOpenAIRdatabaseLabel_2.Text = ' generate a room impulse response, then choose an impulse response from an enviornment of your chosing!';
 
             % Create Hyperlink
             app.Hyperlink = uihyperlink(app.HomeTab);
@@ -892,7 +901,7 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             app.UIAxes.XGrid = 'on';
             app.UIAxes.YGrid = 'on';
             app.UIAxes.ZGrid = 'on';
-            app.UIAxes.Position = [12 222 377 227];
+            app.UIAxes.Position = [117 229 377 227];
 
             % Create ParametersPanel
             app.ParametersPanel = uipanel(app.ConfigureTab);
@@ -904,35 +913,35 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             app.RoomSizeParametersPanel.Title = 'Room Size Parameters';
             app.RoomSizeParametersPanel.Position = [16 10 242 182];
 
-            % Create WidthSlider
-            app.WidthSlider = uislider(app.RoomSizeParametersPanel);
-            app.WidthSlider.Position = [76 134 138 3];
+            % Create WidthmSlider
+            app.WidthmSlider = uislider(app.RoomSizeParametersPanel);
+            app.WidthmSlider.Position = [76 134 147 3];
 
-            % Create WidthSlider_2Label
-            app.WidthSlider_2Label = uilabel(app.RoomSizeParametersPanel);
-            app.WidthSlider_2Label.HorizontalAlignment = 'right';
-            app.WidthSlider_2Label.Position = [20 111 36 22];
-            app.WidthSlider_2Label.Text = 'Width';
+            % Create WidthmSliderLabel
+            app.WidthmSliderLabel = uilabel(app.RoomSizeParametersPanel);
+            app.WidthmSliderLabel.HorizontalAlignment = 'right';
+            app.WidthmSliderLabel.Position = [-1 111 57 22];
+            app.WidthmSliderLabel.Text = 'Width (m)';
 
-            % Create DepthSlider_2Label
-            app.DepthSlider_2Label = uilabel(app.RoomSizeParametersPanel);
-            app.DepthSlider_2Label.HorizontalAlignment = 'right';
-            app.DepthSlider_2Label.Position = [15 60 38 22];
-            app.DepthSlider_2Label.Text = 'Depth';
+            % Create DepthmSliderLabel
+            app.DepthmSliderLabel = uilabel(app.RoomSizeParametersPanel);
+            app.DepthmSliderLabel.HorizontalAlignment = 'right';
+            app.DepthmSliderLabel.Position = [2 61 59 22];
+            app.DepthmSliderLabel.Text = 'Depth (m)';
 
-            % Create DepthSlider
-            app.DepthSlider = uislider(app.RoomSizeParametersPanel);
-            app.DepthSlider.Position = [70 80 144 3];
+            % Create DepthmSlider
+            app.DepthmSlider = uislider(app.RoomSizeParametersPanel);
+            app.DepthmSlider.Position = [74 80 149 3];
 
-            % Create HeightSliderLabel
-            app.HeightSliderLabel = uilabel(app.RoomSizeParametersPanel);
-            app.HeightSliderLabel.HorizontalAlignment = 'right';
-            app.HeightSliderLabel.Position = [11 20 40 22];
-            app.HeightSliderLabel.Text = 'Height';
+            % Create HeightmSliderLabel
+            app.HeightmSliderLabel = uilabel(app.RoomSizeParametersPanel);
+            app.HeightmSliderLabel.HorizontalAlignment = 'right';
+            app.HeightmSliderLabel.Position = [1 18 62 22];
+            app.HeightmSliderLabel.Text = 'Height (m)';
 
-            % Create HeightSlider
-            app.HeightSlider = uislider(app.RoomSizeParametersPanel);
-            app.HeightSlider.Position = [68 31 154 3];
+            % Create HeightmSlider
+            app.HeightmSlider = uislider(app.RoomSizeParametersPanel);
+            app.HeightmSlider.Position = [70 31 154 3];
 
             % Create SourceRecieverCoordinatesPanel
             app.SourceRecieverCoordinatesPanel = uipanel(app.ConfigureTab);
@@ -1021,35 +1030,6 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             app.SimulateButton.Position = [544 82 87 22];
             app.SimulateButton.Text = 'Simulate';
 
-            % Create ReflectionCoeffecientKnobLabel
-            app.ReflectionCoeffecientKnobLabel = uilabel(app.ConfigureTab);
-            app.ReflectionCoeffecientKnobLabel.HorizontalAlignment = 'center';
-            app.ReflectionCoeffecientKnobLabel.FontSize = 8;
-            app.ReflectionCoeffecientKnobLabel.Position = [548 235 84 22];
-            app.ReflectionCoeffecientKnobLabel.Text = 'Reflection Coeffecient';
-
-            % Create ReflectionCoeffecientKnob
-            app.ReflectionCoeffecientKnob = uiknob(app.ConfigureTab, 'continuous');
-            app.ReflectionCoeffecientKnob.Limits = [-1 1];
-            app.ReflectionCoeffecientKnob.FontSize = 8;
-            app.ReflectionCoeffecientKnob.Position = [570 279 39 39];
-
-            % Create TailCutoffKnobLabel
-            app.TailCutoffKnobLabel = uilabel(app.ConfigureTab);
-            app.TailCutoffKnobLabel.HorizontalAlignment = 'center';
-            app.TailCutoffKnobLabel.FontSize = 8;
-            app.TailCutoffKnobLabel.Position = [570 344 41 22];
-            app.TailCutoffKnobLabel.Text = 'Tail Cutoff';
-
-            % Create TailCutoffKnob
-            app.TailCutoffKnob = uiknob(app.ConfigureTab, 'continuous');
-            app.TailCutoffKnob.Limits = [1 16];
-            app.TailCutoffKnob.MajorTicks = [1 4 8 12 16];
-            app.TailCutoffKnob.MinorTicks = [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15];
-            app.TailCutoffKnob.FontSize = 8;
-            app.TailCutoffKnob.Position = [571 376 39 39];
-            app.TailCutoffKnob.Value = 1;
-
             % Create ResetButton_2
             app.ResetButton_2 = uibutton(app.ConfigureTab, 'push');
             app.ResetButton_2.ButtonPushedFcn = createCallbackFcn(app, @ResetButtonPushed, true);
@@ -1107,7 +1087,7 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             app.ErrorLabel.FontAngle = 'italic';
             app.ErrorLabel.FontColor = [0.902 0.3765 0.3765];
             app.ErrorLabel.Visible = 'off';
-            app.ErrorLabel.Position = [22 32 184 22];
+            app.ErrorLabel.Position = [77 32 184 22];
             app.ErrorLabel.Text = 'No IR match user configuration';
 
             % Create IRSelectDropDownLabel
