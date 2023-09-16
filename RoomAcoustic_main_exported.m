@@ -228,7 +228,7 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
 
             %Suggestion algorithm
             fn = fieldnames(env); %returns keys in database
-            tol = 3; %tolerance
+            tol = 3; %tolerance in meters
 
             for k=1:numel(fn)
                 room = string(fn{k});
@@ -241,37 +241,18 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
     
                 if (isWidthWithinRange || isDepthWithinRange || isHeightWithinRange)
                     % check source/reciever distances
-                    %arr = env.(room).srdist;
-                    options = [options string(room)];
-%                     for a=1:numel(arr)
-%                         val = arr(a);
-%                         isSRwithinRange = (U_sr_distance >= (val - 1)) && ...
-%                             (U_sr_distance <= (val + 1));
-%                         if isSRwithinRange
-%                             options = [options string(room)]; %with IR info
-%                             %extended_IRs = [extended_IRs string(room) a]; %with extended IR options
-%                         end
-%                     end
-                    %         if isfield(env.(room),SRHeight)
-                    %
-                    %
-                    %         end
+                    options = [options string(room)]; 
                 end
             end
     
             %Format array to send to dropdown list
             % Delete the first element (first entry is always empty)
             options = options(1:end);
-            %extended_IRs = extended_IRs(1:end);
-
-
             app.dropdown = string(options);
             app.envSelect.Items = app.dropdown;
 
             if isempty(options)
                 app.ErrorLabel.Visible= 'on';
-                %app.SelectModeListBox.Value = "All Options";
-
             end
         end
         
@@ -305,9 +286,6 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             %   2) The output is scaled such that the largest value of the
             %      absolute value of the output vector is equal to one.
 
-            %Version 3.4.2
-            %Copyright © 2003 Stephen G. McGovern
-
             nn=-n:1:n;                            % Index for the sequence
             rms=nn+0.5-0.5*(-1).^nn;              % Part of equations 2,3,& 4
             srcs=(-1).^(nn);                      % part of equations 2,3,& 4
@@ -334,18 +312,6 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             %
             %      x = input vector
             %      h = input vector
-            %
-            %      See also CONV
-            %
-            %   NOTES:
-            %
-            %   1) I have a short article explaining what a convolution is.  It
-            %      is available at http://stevem.us/fconv.html.
-            %
-            %
-            %Version 1.0
-            %Coded by: Stephen G. McGovern, 2003-2004.
-
             Ly = length(x) + length(h) - 1;		%
             Ly2 = pow2(nextpow2(Ly));			% Find smallest power of 2 that is > Ly
             X = fft(x, Ly2);					% Fast Fourier transform
@@ -657,19 +623,17 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             plot3(app.UIAxes,X,Y,Z,"k","LineWidth",1.5);
             % draw a square in the xy plane with z = 1
             plot3(app.UIAxes,X,Y,Z+roomDimensions(3),"k","LineWidth",1.5); 
-            %set(app.UIAxes,gca,"View",[-28,35]); % set the azimuth and elevation of the plot
             for k=1:length(X)-1
                 plot3(app.UIAxes, [X(k);X(k)],[Y(k);Y(k)],[0;roomDimensions(3)],"k","LineWidth",1.5);
             end
             plot3(app.UIAxes,sourceCoord(1),sourceCoord(2),sourceCoord(3),"bx","LineWidth",2)
             plot3(app.UIAxes,receiverCoord(1),receiverCoord(2),receiverCoord(3),"ro","LineWidth",2)
-
             hold(app.UIAxes,'off');
-            %plot3(app.UIAxes,Width,Height,Depth,'.')
 
             %Update options list based on user input
             returnOptions(app,Width,Depth,Height);
             updateEntries(app);
+
             %Generate Room Impulse Response
             app.RIR = rir(app,app.fs_file,receiverCoord, 6 ,0.75 ,roomDimensions,sourceCoord);
 
@@ -761,7 +725,6 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
 
         % Button pushed function: PlayButton
         function PlayButtonPushed(app, event)
-            %app.applied_IR = pl
             
             soundsc(app.applied_IR,app.fs_file)
         end
@@ -778,9 +741,9 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             % Make current instance of app invisible
             app.UIFigure.Visible = 'off';
             % Open 2nd instance of app
-            RoomAcoustic_main();  % <--------------The name of your app
+            RoomAcoustic_main();  
             % Delete old instance
-            close(app.UIFigure) %Thanks to Guillaume for suggesting to use close() rather than delete()
+            close(app.UIFigure) 
         end
 
         % Value changed function: IRSelectDropDown
@@ -808,6 +771,8 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             % Create HomeTab
             app.HomeTab = uitab(app.TabGroup);
             app.HomeTab.Title = 'Home';
+            app.HomeTab.BackgroundColor = [1 1 1];
+            app.HomeTab.ForegroundColor = [0.149 0.149 0.149];
 
             % Create WelcomePanel
             app.WelcomePanel = uipanel(app.HomeTab);
