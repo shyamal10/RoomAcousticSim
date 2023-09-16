@@ -1,0 +1,67 @@
+
+Format(s): 
+Stereo (Stereo Files)
+B-Format (4 Channel Files)
+
+Stereo: 
+
+    audio/x-wav iconortf_s1r1.wav
+
+Sample Rate: 96 kHz
+Number of Channels: 2
+Bits per Sample: 24
+Duration: 6 s
+File Size: 3.3 MB
+File Format: wav
+
+
+    audio/x-wav iconortf_s2r2.wav
+
+Sample Rate: 96 kHz
+Number of Channels: 2
+Bits per Sample: 24
+Duration: 6 s
+File Size: 3.3 MB
+File Format: wav
+
+
+    audio/x-wav iconortf_s3r3.wav
+
+Sample Rate: 96 kHz
+Number of Channels: 2
+Bits per Sample: 24
+Duration: 6 s
+File Size: 3.3 MB
+File Format: wav
+
+B-Format: Multichannel: 
+
+    audio/x-wav iconsoundfield_s1r1.wav
+
+Sample Rate: 96 kHz
+Number of Channels: 4
+Bits per Sample: 24
+Duration: 6 s
+File Size: 6.59 MB
+File Format: wav
+
+
+    audio/x-wav iconsoundfield_s2r2.wav
+
+Sample Rate: 96 kHz
+Number of Channels: 4
+Bits per Sample: 24
+Duration: 6 s
+File Size: 6.59 MB
+File Format: wav
+
+
+    audio/x-wav iconsoundfield_s3r3.wav
+
+Sample Rate: 96 kHz
+Number of Channels: 4
+Bits per Sample: 24
+Duration: 6 s
+File Size: 6.59 MB
+File Format: wav
+
