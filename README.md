@@ -85,10 +85,12 @@
 
 [![Product Name Screen Shot][product-screenshot]](https://example.com)
 
-Welcome to room acoustics simulator! First set your room size and source/reciever parameters. A suggestion algorithm is applied to select the enviornments from the database that 
-best fit the set parameters. Choose from the suggested enviornments or select an impulse response from over 17 unique enviornments across the world. Finally, import
-your own audio file to act as the 'source'. Using signal processing algorithms such as stochastic ray tracing and applying room impusle responses, a final output signal is generated which
-you can play.
+Welcome to the Room Acoustics Simulator! Begin by configuring your room dimensions and source/receiver parameters. Our suggestion algorithm will then analyze your settings and recommend environments from our extensive database that closely match your criteria. You have the option to select from the suggested environments or pick from a library of over 17 distinct acoustic environments from around the world. Additionally, you can import your own audio file to serve as the source sound. Our advanced signal processing techniques, including stochastic ray tracing and the application of room impulse responses, will be used to generate a final output signal that you can play and experience.
+
+
+
+
+
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
