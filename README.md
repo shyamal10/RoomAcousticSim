@@ -204,12 +204,13 @@ _For more examples, please refer to the [Documentation](https://example.com)_
 
 
 <!-- ROADMAP -->
-## Roadmap
+## Possible updates
 
-- [ ] Feature 1
-- [ ] Feature 2
-- [ ] Feature 3
-    - [ ] Nested Feature
+- [ ] Expand current database
+    - [ ] The current database contains 17 environments, but implementing additional environments from around the world would significantly broaden the app's scope and capabilities.
+- [ ] Performance Optimization
+- [ ] Configuring customizable reflectivity and wall properties
+    - [ ] This would offer increased customization for a more immersive and realistic audio simulation experience.
 
 See the [open issues](https://github.com/shyamal10/RoomAcousticSim/issues) for a full list of proposed features (and known issues).
 
