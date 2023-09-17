@@ -203,9 +203,9 @@ Project Link: [https://github.com/shyamal10/RoomAcousticSim](https://github.com/
 <!-- ACKNOWLEDGMENTS -->
 ## Acknowledgments
 
-* []()
-* []()
-* []()
+* []()McGovern, Stephen G. “Fast image method for impulse response calculations of box-shaped rooms.” Applied Acoustics, vol. 70, no. 1, 2009, pp. 182–189, https://doi.org/10.1016/j.apacoust.2008.02.003. 
+* []()https://www.mathworks.com/help/audio/ug/room-impulse-response-simulation-with-image-source-method-and-hrtf-interpolation.html
+* []()https://www.mathworks.com/help/audio/ug/room-impulse-response-simulation-with-stochastic-ray-tracing.html
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
