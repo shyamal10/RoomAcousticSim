@@ -116,22 +116,38 @@ To get a local copy up and running follow these simple example steps.
 To execute any MATLAB program on a computer without MATLAB installed, you must first install the Matlab Compiler Runtime (MCR). 
 This is essential as it includes the core Matlab functionality needed by your application, on the target machine where you intend 
 to deploy your application. Ensure that you install the same version of MCR as the version of Matlab was used to generate this program.
-This app was built using MATLAB version 2023a so the MCR version would be 9.14. If MATLAB is already installed, simply clone the repo
-in the same directory as your other MATLAB files and run the .mlapp file.
+This app was built using MATLAB version 2023a so the MCR version would be 9.14. If MATLAB is installed,
+verify that MATLAB Runtime(R2023a) is installed. If not, you can run the MATLAB Runtime installer.
+To find its location, enter
+  
+    >>mcrinstaller
+      
+at the MATLAB prompt.
+NOTE: You will need administrator rights to run the MATLAB Runtime installer. 
 
-Clone the repo
+Alternatively, download and install the Windows version of the MATLAB Runtime for R2023a 
+from the following link on the MathWorks website:
+
+    https://www.mathworks.com/products/compiler/mcr/index.html
+   
+For more information about the MATLAB Runtime and the MATLAB Runtime installer, see 
+"Distribute Applications" in the MATLAB Compiler documentation  
+in the MathWorks Documentation Center.
+
+
+If you have MATLAB and App designer simply clone the repo in your MATLAB files directory
    ```sh
    git clone https://github.com/shyamal10/RoomAcousticSim.git
    ```
-
+And run the .mlapp file.
 
 
 ### Installation (if MATLAB is not installed)
 
 
-1. Download MATLAB Runtime 9.14 at link [[MCR](https://www.mathworks.com/products/compiler/matlab-runtime.html)]
+1. Download MATLAB Runtime 9.14 at link [[MCR](https://www.mathworks.com/products/compiler/matlab-runtime.html)] OR download from releases 
 2. Follow installation instructions
-3. Run exe file found in releases tab
+3. Run exe file found in releases 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
