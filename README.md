@@ -85,7 +85,7 @@
 
 [![Product Name Screen Shot][product-screenshot]](https://example.com)
 
-Welcome to the Room Acoustics Simulator! Begin by configuring your room dimensions and source/receiver parameters. Our suggestion algorithm will then analyze your settings and recommend environments from our extensive database that closely match your criteria. You have the option to select from the suggested environments or pick from a library of over 17 distinct acoustic environments from around the world. Additionally, you can import your own audio file to serve as the source sound. Our advanced signal processing techniques, including stochastic ray tracing and the application of room impulse responses, will be used to generate a final output signal that you can play and experience.
+Welcome to the Room Acoustics Simulator! Begin by configuring your room dimensions and source/receiver parameters. Our suggestion algorithm will then analyze your settings and recommend environments from our extensive database that closely match your criteria. You have the option to select from the suggested environments or pick from a library of over 17 distinct acoustic environments from around the world, powered by Open AIR. Additionally, you can import your own audio file to serve as the source sound. Our advanced signal processing techniques, including stochastic ray tracing and the application of room impulse responses, will be used to generate a final output signal that you can play and experience.
 
 
 
@@ -208,6 +208,7 @@ Project Link: [https://github.com/shyamal10/RoomAcousticSim](https://github.com/
 * []()McGovern, Stephen G. “Fast image method for impulse response calculations of box-shaped rooms.” Applied Acoustics, vol. 70, no. 1, 2009, pp. 182–189, https://doi.org/10.1016/j.apacoust.2008.02.003. 
 * []()https://www.mathworks.com/help/audio/ug/room-impulse-response-simulation-with-image-source-method-and-hrtf-interpolation.html
 * []()https://www.mathworks.com/help/audio/ug/room-impulse-response-simulation-with-stochastic-ray-tracing.html
+* []() https://www.openairlib.net/
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
