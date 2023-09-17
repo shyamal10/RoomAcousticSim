@@ -149,7 +149,7 @@ And run the .mlapp file.
 ### Installation (if MATLAB is not installed)
 
 
-1. Download MATLAB Runtime 9.14 at link [[MCR](https://www.mathworks.com/products/compiler/matlab-runtime.html)] OR download from releases 
+1. Download MATLAB Runtime 9.14 at link [[MCR](https://www.mathworks.com/products/compiler/matlab-runtime.html)]
 2. Follow installation instructions
 3. Run exe file found in releases 
 
