@@ -85,7 +85,7 @@
 
 [![Product Name Screen Shot][product-screenshot]](https://example.com)
 
-Welcome to the Room Acoustics Simulator! Begin by configuring your room dimensions and source/receiver parameters. Our suggestion algorithm will then analyze your settings and recommend environments from our extensive database that closely match your criteria. You have the option to select from the suggested environments or pick from a library of over 17 distinct acoustic environments from around the world, powered by Open AIR. Additionally, you can import your own audio file to serve as the source sound. Our advanced signal processing techniques, including stochastic ray tracing and the application of room impulse responses, will be used to generate a final output signal that you can play and experience.
+Welcome to the Room Acoustics Simulator! Begin by configuring your room dimensions and source/receiver parameters. Our suggestion algorithm will then analyze your settings and recommend environments from our extensive database that closely match your criteria. You have the option to select from the suggested environments or pick from a library of over 17 distinct acoustic environments from around the world, powered by Open AIR. Additionally, you can import your own audio file to serve as the source sound. Our advanced signal processing techniques, including stochastic ray tracing and the application of room impulse responses, will be used to generate a final output signal that you can play and experience as if you are in the specified locations.
 
 
 
@@ -113,27 +113,25 @@ To get a local copy up and running follow these simple example steps.
 
 ### Prerequisites
 
-This is an example of how to list things you need to use the software and how to install them.
-* npm
-  ```sh
-  npm install npm@latest -g
-  ```
+To execute any Matlab program on a computer without Matlab installed, you must first install the Matlab Compiler Runtime (MCR). 
+This is essential as it includes the core Matlab functionality needed by your application, on the target machine where you intend 
+to deploy your application. Ensure that you install the same version of MCR as the version of Matlab was used to generate this program.
+This app was built using MATLAB version 2023a so the MCR version would be 9.14. If MATLAB is already installed, simply clone the repo
+in the same directory as your other MATLAB files and run the .mlapp file.
 
-### Installation
-
-1. Get a free API Key at [https://example.com](https://example.com)
-2. Clone the repo
+Clone the repo
    ```sh
    git clone https://github.com/shyamal10/RoomAcousticSim.git
    ```
-3. Install NPM packages
-   ```sh
-   npm install
-   ```
-4. Enter your API in `config.js`
-   ```js
-   const API_KEY = 'ENTER YOUR API';
-   ```
+
+
+
+### Installation (if MATLAB is not installed)
+
+
+1. Download MATLAB Runtime 9.14 at link [[https://example.com](https://www.mathworks.com/products/compiler/matlab-runtime.html)]([https://example.com](https://www.mathworks.com/products/compiler/matlab-runtime.html))
+2. Follow installation instructions
+3. Run exe file
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
