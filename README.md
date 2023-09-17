@@ -99,7 +99,7 @@ Welcome to the Room Acoustics Simulator! Begin by configuring your room dimensio
 ### Built With
 
 * [![Bootstrap][Bootstrap.com]][Bootstrap-url]
-* [![MATLAB][matworks.com]][matworks-url]
+* [![MATLAB][mathworks.com]][mathworks-url]
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
