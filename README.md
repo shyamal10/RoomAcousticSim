@@ -113,7 +113,7 @@ To get a local copy up and running follow these simple example steps.
 
 ### Prerequisites
 
-To execute any Matlab program on a computer without Matlab installed, you must first install the Matlab Compiler Runtime (MCR). 
+To execute any MATLAB program on a computer without MATLAB installed, you must first install the Matlab Compiler Runtime (MCR). 
 This is essential as it includes the core Matlab functionality needed by your application, on the target machine where you intend 
 to deploy your application. Ensure that you install the same version of MCR as the version of Matlab was used to generate this program.
 This app was built using MATLAB version 2023a so the MCR version would be 9.14. If MATLAB is already installed, simply clone the repo
@@ -129,9 +129,9 @@ Clone the repo
 ### Installation (if MATLAB is not installed)
 
 
-1. Download MATLAB Runtime 9.14 at link [[https://example.com](https://www.mathworks.com/products/compiler/matlab-runtime.html)]([https://example.com](https://www.mathworks.com/products/compiler/matlab-runtime.html))
+1. Download MATLAB Runtime 9.14 at link [[MCR](https://www.mathworks.com/products/compiler/matlab-runtime.html)]
 2. Follow installation instructions
-3. Run exe file
+3. Run exe file found in releases tab
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
