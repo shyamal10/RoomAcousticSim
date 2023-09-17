@@ -169,7 +169,7 @@ And run the .mlapp file.
   </a>
 <br />
   
-\Here you can set the dimensions of your room. You can also set where your source is and where your reciever position is, to best model how you want your final image to be.
+Here you can set the dimensions of your room. You can also set where your source is and where your reciever position is, to best model how you want your final image to be.
 When you click simulate, a Room impulse response is generated using Stochastic Tracing methods 
 
 ### Selection:
