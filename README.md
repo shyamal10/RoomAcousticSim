@@ -205,11 +205,9 @@ _For more examples, please refer to the [Documentation](https://example.com)_
 <!-- ROADMAP -->
 ## Possible updates
 
-- [ ] Expand current database
-    - [ ] The current database contains 17 environments, but implementing additional environments from around the world would significantly broaden the app's scope and capabilities.
+- [ ] Expand current database of IR's around the world to broaden the app's scope and capabilities.
 - [ ] Performance Optimization
-- [ ] Configuring customizable reflectivity and wall properties
-    - [ ] This would offer increased customization for a more immersive and realistic audio simulation experience.
+- [ ] Configuring customizable reflectivity and wall properties to offer a more immersive and realistic audio simulation experience.
 
 See the [open issues](https://github.com/shyamal10/RoomAcousticSim/issues) for a full list of proposed features (and known issues).
 
