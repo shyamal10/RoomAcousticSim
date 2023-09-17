@@ -83,7 +83,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-<!-- PROJECT LOGO -->
+<!-- PROJECT Home page -->
 <br />
 <div align="center">
   <a href="https://github.com/shyamal10/RoomAcousticSim">
@@ -161,7 +161,36 @@ And run the .mlapp file.
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
+Configuration: 
+<!-- PROJECT config page -->
+<br />
+<div align="center">
+  <a href="https://github.com/shyamal10/RoomAcousticSim">
+    <img src="assets/images/HomePage.PNG" alt="Logo" width="642" height="512">
+  </a>
+Here you can set the dimensions of your room. You can also set where your source is and where your reciever position is, to best model how you want your final image to be.
+When you click simulate, a Room impulse response is generated using Stochastic Tracing methods 
+
+Selection:
+<!-- PROJECT config page -->
+<br />
+<div align="center">
+  <a href="https://github.com/shyamal10/RoomAcousticSim">
+    <img src="assets/images/HomePage.PNG" alt="Logo" width="642" height="512">
+  </a> 
+An algorithm for providing recommendations is applied based on user configurations. This allows users to select from a variety of environments that best match their specific settings. Images and impulse responses are dynamically updated with each selection made. Additionally, users have the option to explore all available environments through the "all options" tab, which displays the entire database of environments.
+  
+All impulse responses (IRs) are sourced from the Open AIR's database, accessible directly within the application or via the references tab at the bottom of the page. Furthermore, environments may offer multiple IRs for selection. Users can choose from a dropdown menu to switch between them, observing real-time updates in the response plots.
+
+
+Simulation:
+<!-- PROJECT config page -->
+<br />
+<div align="center">
+  <a href="https://github.com/shyamal10/RoomAcousticSim">
+    <img src="assets/images/HomePage.PNG" alt="Logo" width="642" height="512">
+  </a> 
+A suggestion algorithm 
 
 _For more examples, please refer to the [Documentation](https://example.com)_
 
