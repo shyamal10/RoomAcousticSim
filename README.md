@@ -85,7 +85,10 @@
 
 [![Product Name Screen Shot][product-screenshot]](https://example.com)
 
-Here's a blank template to get started: To avoid retyping too much info. Do a search and replace with your text editor for the following: `shyamal10`, `RoomAcousticSim`, `twitter_handle`, `linkedin_username`, `email_client`, `email`, `project_title`, `project_description`
+Welcome to room acoustics simulator! First set your room size and source/reciever parameters. A suggestion algorithm is applied to select the enviornments from the database that 
+best fit the set parameters. Choose from the suggested enviornments or select an impulse response from over 17 unique enviornments across the world. Finally, import
+your own audio file to act as the 'source'. Using signal processing algorithms such as stochastic ray tracing and applying room impusle responses, a final output signal is generated which
+you can play.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -93,12 +96,6 @@ Here's a blank template to get started: To avoid retyping too much info. Do a se
 
 ### Built With
 
-* [![Next][Next.js]][Next-url]
-* [![React][React.js]][React-url]
-* [![Vue][Vue.js]][Vue-url]
-* [![Angular][Angular.io]][Angular-url]
-* [![Svelte][Svelte.dev]][Svelte-url]
-* [![Laravel][Laravel.com]][Laravel-url]
 * [![Bootstrap][Bootstrap.com]][Bootstrap-url]
 * [![MATLAB][matworks.com]][matworks-url]
 
