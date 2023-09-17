@@ -160,7 +160,7 @@ And run the .mlapp file.
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-###Configuration: 
+### Configuration: 
 <!-- PROJECT config page -->
 <br />
 <div align="center">
@@ -172,7 +172,8 @@ And run the .mlapp file.
 \Here you can set the dimensions of your room. You can also set where your source is and where your reciever position is, to best model how you want your final image to be.
 When you click simulate, a Room impulse response is generated using Stochastic Tracing methods 
 
-###Selection:
+### Selection:
+
 <!-- PROJECT config page -->
 <br />
 <div align="center">
@@ -185,7 +186,8 @@ An algorithm for providing recommendations is applied based on user configuratio
 All impulse responses (IRs) are sourced from the Open AIR's database, accessible directly within the application or via the references tab at the bottom of the page. Furthermore, environments may offer multiple IRs for selection. Users can choose from a dropdown menu to switch between them, observing real-time updates in the response plots.
 
 
-###Simulation:
+### Simulation:
+
 <!-- PROJECT config page -->
 <br />
 <div align="center">
