@@ -90,7 +90,7 @@
     <img src="assets/images/HomePage.PNG" alt="Logo" width="642" height="512">
   </a>
 
-Welcome to the Room Acoustics Simulator! Begin by configuring your room dimensions and source/receiver parameters. Our suggestion algorithm will then analyze your settings and recommend environments from our extensive database that closely match your criteria. You have the option to select from the suggested environments or pick from a library of over 17 distinct acoustic environments from around the world, powered by Open AIR. Additionally, you can import your own audio file to serve as the source sound. Our advanced signal processing techniques, including stochastic ray tracing and the application of room impulse responses, will be used to generate a final output signal that you can play and experience as if you are in the specified locations.
+Welcome to the Room Acoustics Simulator! Begin by configuring your room dimensions and source/receiver parameters. Our suggestion algorithm will then analyze your settings and recommend environments from our extensive database that closely match your criteria. You have the option to select from the suggested environments or pick from a library of over 17 distinct acoustic environments from around the world, powered by Open AIR. Additionally, you can import your own audio file to serve as the source sound. Our advanced signal processing techniques, including the image-source method and the application of room impulse responses, will be used to generate a final output signal that you can play and experience as if you are in the specified locations.
 
 
 
@@ -170,7 +170,7 @@ And run the .mlapp file.
 <br />
   
 Here you can set the dimensions of your room. You can also set where your source is and where your reciever position is, to best model how you want your final image to be.
-When you click simulate, a Room impulse response is generated using Stochastic Tracing methods 
+When you click simulate, a Room impulse response is generated using Image-Source methods 
 
 ### Selection:
 
