@@ -192,7 +192,7 @@ All impulse responses (IRs) are sourced from the Open AIR's database, accessible
 <br />
 <div align="center">
   <a href="https://github.com/shyamal10/RoomAcousticSim">
-    <img src="assets/images/Sim1_EXAMPLE.PNG" alt="Logo" width="642" height="512">
+    <img src="assets/images/EXAMPLE_SIM.PNG" alt="Logo" width="642" height="512">
   </a> 
 <br />
 You can upload your audio file here and view a real-time plot. This file serves as the 'source' that you previously placed in the app's configuration panel. When you click "simulate," both impulse responses are applied to the signal, which is visible in the "Applied IR" plots and can be played back. If needed, you can reset all fields from this point to start over.
