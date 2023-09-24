@@ -199,6 +199,9 @@ You can upload your audio file here and view a real-time plot. This file serves 
 
   
 _For more examples, please refer to the [Documentation](https://example.com)_
+Demo run:
+![Alt Text]("assets/images/demo_run.gif")
+
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
