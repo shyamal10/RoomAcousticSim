@@ -198,9 +198,9 @@ All impulse responses (IRs) are sourced from the Open AIR's database, accessible
 You can upload your audio file here and view a real-time plot. This file serves as the 'source' that you previously placed in the app's configuration panel. When you click "simulate," both impulse responses are applied to the signal, which is visible in the "Applied IR" plots and can be played back. If needed, you can reset all fields from this point to start over.
 
   
-_For more examples, please refer to the [Documentation](https://example.com)_
-Demo run:
-![Alt Text]("assets/images/demo_run.gif")
+_For more examples, please refer to the [Documentation](https://example.com)_\
+### Demo run:
+![Alt Text](src = "assets/images/demo_run.gif")
 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
