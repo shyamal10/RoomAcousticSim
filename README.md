@@ -165,7 +165,7 @@ And run the .mlapp file.
 <br />
 <div align="center">
   <a href="https://github.com/shyamal10/RoomAcousticSim">
-    <img src="assets/images/config_EXAMPLE.PNG" alt="Logo" width="642" height="512">
+    <img src="assets/images/config.PNG" alt="Logo" width="642" height="512">
   </a>
 <br />
   
