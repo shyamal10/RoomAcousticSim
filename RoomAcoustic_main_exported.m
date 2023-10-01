@@ -56,6 +56,7 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
         IRgraph                         matlab.ui.control.UIAxes
         SimulationTab                   matlab.ui.container.Tab
         SimulatePanel                   matlab.ui.container.Panel
+        ExportButton                    matlab.ui.control.Button
         ErrorLabel_IR                   matlab.ui.control.Label
         PlayButton                      matlab.ui.control.Button
         ResetButton                     matlab.ui.control.Button
@@ -78,7 +79,7 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             "Gill-heads-mine", "hoffmann-lime-kiln-langcliffeuk", "newgrange", "st-patricks-church-patrington",...
             "trollers-gill", "tyndall-bruce-monument","usina-del-arte-symphony-hall",...
              "Creswell-Crags","York-Guildhall-Council-Chamber","Shrine & Parish-church",...
-             "Lady-Chapel-St-Albans-Cathedral","York Minster",];
+             "Lady-Chapel-St-Albans-Cathedral","York Minster"];
         IR = [] % Impulse Repsonse
         audioFile = [] % Audio sample loaded
         filePath = '' % pathname
@@ -696,26 +697,29 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
 
         % Button pushed function: ApplyIRButton
         function ApplyIRButtonPushed(app, event)
-            if isempty(app.RIR) == 1 %If RIR is empty just use IR
+            wetVal_IR = 0.75;
+            wetVal_RIR = 0.25;
+            if isempty(app.RIR) == 1 %If RIR is empty just use IR (Partial)
+
                 output = conv(app.IR, app.audioFile);
                 dt = 1/app.fs_file; 
                 t = 0:dt:(length(output)*dt)-dt;
-    
-                plot(app.OutputGraph,t,output);
-                app.applied_IR = output;
+                app.applied_IR = output/max(output);
+                plot(app.OutputGraph,t, app.applied_IR);
+                
                 
             elseif isempty(app.IR) ~= 1 % Using both RIR and IR (Full)
 
                 app.ErrorLabel_IR.Visible = "off";
 
-                output1 = fconv(app,app.audioFile,app.RIR);
+                output1 = fconv(app,app.audioFile, wetVal_RIR*app.RIR);
 
-                output = conv(app.IR, output1);
+                output = conv(wetVal_IR*app.IR, output1);
                 dt = 1/app.fs_file; 
                 t = 0:dt:(length(output)*dt)-dt;
-    
-                plot(app.OutputGraph,t,output);
-                app.applied_IR = output;
+                app.applied_IR = output/max(output);
+                plot(app.OutputGraph,t, app.applied_IR );
+                
             else
                 app.ErrorLabel_IR.Visible = "on";
             end
@@ -750,6 +754,11 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
         function IRSelectDropDownValueChanged(app, event)
             value = app.IRSelectDropDown.Value;
             updateEntries(app)
+        end
+
+        % Button pushed function: ExportButton
+        function ExportButtonPushed(app, event)
+            audiowrite("output.wav",app.applied_IR,app.fs_file);
         end
     end
 
@@ -901,12 +910,12 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             % Create HeightmSliderLabel
             app.HeightmSliderLabel = uilabel(app.RoomSizeParametersPanel);
             app.HeightmSliderLabel.HorizontalAlignment = 'right';
-            app.HeightmSliderLabel.Position = [1 18 62 22];
+            app.HeightmSliderLabel.Position = [1 22 62 22];
             app.HeightmSliderLabel.Text = 'Height (m)';
 
             % Create HeightmSlider
             app.HeightmSlider = uislider(app.RoomSizeParametersPanel);
-            app.HeightmSlider.Position = [70 31 154 3];
+            app.HeightmSlider.Position = [72 32 154 3];
 
             % Create SourceRecieverCoordinatesPanel
             app.SourceRecieverCoordinatesPanel = uipanel(app.ConfigureTab);
@@ -998,7 +1007,9 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             % Create ResetButton_2
             app.ResetButton_2 = uibutton(app.ConfigureTab, 'push');
             app.ResetButton_2.ButtonPushedFcn = createCallbackFcn(app, @ResetButtonPushed, true);
-            app.ResetButton_2.Position = [544 33 90 22];
+            app.ResetButton_2.BackgroundColor = [0.8706 0.1294 0.1294];
+            app.ResetButton_2.FontWeight = 'bold';
+            app.ResetButton_2.Position = [555 32 66 23];
             app.ResetButton_2.Text = 'Reset';
 
             % Create SelectionTab
@@ -1136,7 +1147,9 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             % Create ResetButton
             app.ResetButton = uibutton(app.SimulatePanel, 'push');
             app.ResetButton.ButtonPushedFcn = createCallbackFcn(app, @ResetButtonPushed, true);
-            app.ResetButton.Position = [125 12 100 22];
+            app.ResetButton.BackgroundColor = [0.8706 0.1294 0.1294];
+            app.ResetButton.FontWeight = 'bold';
+            app.ResetButton.Position = [5 7 65 25];
             app.ResetButton.Text = 'Reset';
 
             % Create PlayButton
@@ -1153,6 +1166,12 @@ classdef RoomAcoustic_main_exported < matlab.apps.AppBase
             app.ErrorLabel_IR.Visible = 'off';
             app.ErrorLabel_IR.Position = [130 104 88 22];
             app.ErrorLabel_IR.Text = 'No IR selected';
+
+            % Create ExportButton
+            app.ExportButton = uibutton(app.SimulatePanel, 'push');
+            app.ExportButton.ButtonPushedFcn = createCallbackFcn(app, @ExportButtonPushed, true);
+            app.ExportButton.Position = [124 28 100 23];
+            app.ExportButton.Text = 'Export';
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';
